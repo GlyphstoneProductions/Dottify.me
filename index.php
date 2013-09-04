@@ -27,5 +27,8 @@ Please bookmark the site and watch here, our facebook page, follow @dottifyme #d
 ready for you to dottify yourself.  Our goal is to reach over 100 dottified users by the demo time Sunday afternoon.
 <br/><br/>For more information on the project, please watch our blog site at <a href="http://dottify.org">Dottify.org</a>
 
+<br/>
+Click here More information about <a href="http://transhack.org/">Trans*H4CK! Hackathon</a>
+
 </body>
 </html>
