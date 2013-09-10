@@ -3,3 +3,4 @@ RewriteEngine on
 
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule ^ http://localhost/dottify/index.php [QSA,L]
+
