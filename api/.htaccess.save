@@ -1,0 +1,6 @@
+#control url formats
+RewriteEngine on
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule . http://localhost/dottify/api/index.php [L]
+#RewriteRule ^ http://localhost/dottify/api/index.php [QSA,L]
