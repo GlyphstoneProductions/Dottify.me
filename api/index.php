@@ -136,8 +136,8 @@ function listusersinzip($zipcode) {
 function listzipcodes( ) {
 	$start = microtime() ;
 	$request = Slim::getInstance()->request();
-	$offset = $request->params( "offset" ) ;
-	$limit = $request->params( "limit" ) ;
+	$offset = $request->get( "offset" ) ;
+	$limit = $request->get( "limit" ) ;
 
 	$mgr = new DottifyManager() ;
 	$out = $mgr->listZipcodes( $offset, $limit ) ;

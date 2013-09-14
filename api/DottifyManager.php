@@ -8,6 +8,7 @@
 
 require_once "User.php" ;
 require_once "Validation.php" ;
+require_once "Zipcode.php" ;
 
 class DottifyManager {
 	
@@ -104,7 +105,7 @@ class DottifyManager {
 		$sql = "INSERT INTO user (uuid, refid, created, modified, ver, thisver, refuserid, zipcode, username, password, email, userstatus, usertype) " ;
 	    $sql .= "VALUES (:uuid, :refid, :created, :modified, 0, 1, :refuserid, :zipcode, :username, :password, :email, :userstatus, :usertype)";
 		try {
-			$db = getConnection();
+			$db = $this->getConnection();
 			$stmt = $db->prepare($sql);
 			$stmt->bindParam("uuid", $user->uuid);
 			$stmt->bindParam("refid", $user->refid);
@@ -157,26 +158,28 @@ class DottifyManager {
 	
 	// list zipcodes from refernce database
 	public function listZipcodes( $offset, $limit ) {
+
 		$offset = ( is_null( $offset ) )? 0 : $offset ;
 		$limit = ( is_null ( $limit))? 100 : $limit ;
+		echo "offset: $offset  limit : $limit\n" ;
 		
-		$sql = "select zipcode, country, lattitude, longitude, state, population" ;
-		$sql .= "FROM zipinfo ORDER BY state limit :offset, :limit";
+		$sql = "select zipcode, country, latitude, longitude, state, population" ;
+		$sql .= " FROM zipinfo where population > 0 ORDER BY state LIMIT  :offset, :limit";
+		//$sql .= " FROM zipinfo where population > 0 ORDER BY state limit 0, 20";
 		try {
 			$db = $this->getConnection();
-			$db = getConnection();
 			$stmt = $db->prepare($sql);
-			$stmt->bindParam("offset", $offset);
-			$stmt->bindParam("limit", $limit);
-			$zipcodes = $stmt->fetchAll(PDO::FETCH_OBJ);
+			$stmt->bindParam("offset", $offset, PDO::PARAM_INT);
+			$stmt->bindParam("limit", $limit, PDO::PARAM_INT);
+			$stmt->execute();
+			$objs = $stmt->fetchAll(PDO::FETCH_OBJ);
 			$db = null;
-			$obj = new Zipcodes() ;
-			$obj->elements = $zipcodes ;
-			return $obj ;
+			return $objs ;
 		} catch(PDOException $e) {
 			$message = $e->getMessage() ;
 			return array( "Error" => array( "text" => $message) ) ;
 		}
+
 	}
 	
 	protected function getVisits() {
