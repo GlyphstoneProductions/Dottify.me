@@ -1,0 +1,12 @@
+#control url formats
+#RewriteEngine on
+
+#RewriteCond %{REQUEST_URI} ^/api/.*$ [NC]
+#RewriteCond %{REQUEST_FILENAME} !-f
+#RewriteRule ^ api/index.php [QSA,L]
+
+#RewriteBase /
+#RewriteCond %{REQUEST_FILENAME} !-f 
+#RewriteCond %{REQUEST_FILENAME} !-d 
+#RewriteRule . /index.php [L]
+
