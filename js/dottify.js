@@ -18,9 +18,8 @@
 		}).addTo(this.leafletMap);
 	};
 
-	var handleEnterZipCode = function (event) {
-		var zipCode = $('#zipCode').val();
-		if (zipCode && !isNan(zipCode)) {
+	var handleEnterZipCode = function (zipCode) {
+		if (zipCode && !isNaN(zipCode)) {
 			createUser();
 		}
 	};
