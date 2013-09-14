@@ -186,7 +186,6 @@ class DottifyManager {
 
 		$offset = ( is_null( $offset ) )? 0 : intval($offset) ;
 		$limit = ( is_null ( $limit))? 100 : intval($limit) ;
-		echo "state : $state" ;
 		
 		$sql = "select n.idcode, n.q10 as zipcode, z.latitude, z.longitude, z.state, n.q2 as assignedgender, n.currentgender, n.complexgender, n.tggnc, n.visualconformity, " ;
 		$sql .= "n.medicaltransition, n.surgicaltransition,	n.sofinal, n.age, n.agecat, n.agefulltime, n.areout, n.workforce, n.unemployment, n.income, " ;
