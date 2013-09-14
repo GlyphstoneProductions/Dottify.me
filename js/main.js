@@ -1,5 +1,6 @@
 // The root URL for the RESTful services
-var rootURL = "http://localhost/dottify/api";
+//var rootURL = "http://localhost/dottify/api";
+var rootURL = "api" ;
 
 var currentUser;
 
