@@ -152,9 +152,10 @@ function listNTDSUsers() {
 	$request = Slim::getInstance()->request();
 	$offset = $request->get( "offset" ) ;
 	$limit = $request->get( "limit" ) ;
+	$state = $request->get( "state" ) ;
 	
 	$mgr = new DottifyManager() ;
-	$out = $mgr->listNTDSUsers( $offset, $limit ) ;
+	$out = $mgr->listNTDSUsers( $state, $offset, $limit ) ;
 	send( $out, $start) ;	
 	
 	

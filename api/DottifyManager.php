@@ -182,21 +182,28 @@ class DottifyManager {
 
 	}
 	
-	public function listNTDSUsers( $offset, $limit ) {
+	public function listNTDSUsers( $state, $offset, $limit ) {
 
 		$offset = ( is_null( $offset ) )? 0 : intval($offset) ;
 		$limit = ( is_null ( $limit))? 100 : intval($limit) ;
+		echo "state : $state" ;
 		
 		$sql = "select n.idcode, n.q10 as zipcode, z.latitude, z.longitude, z.state, n.q2 as assignedgender, n.currentgender, n.complexgender, n.tggnc, n.visualconformity, " ;
 		$sql .= "n.medicaltransition, n.surgicaltransition,	n.sofinal, n.age, n.agecat, n.agefulltime, n.areout, n.workforce, n.unemployment, n.income, " ;
 		$sql .= "n.q11a as 'white', n.q11b as 'black', n.q11c as 'amind', n.q11d as 'latino', n.q11e as 'api', " ;
 		$sql .= "n.q11f as 'mideast', n.q11g as 'multirace' " ;
 		$sql .= "from ntdsdata n join zipinfo z on n.q10 = z.zipcode " ;
-		$sql .= "order by n.q10 limit :offset, :limit " ;
+		if( !is_null( $state ) ) {
+			$sql .= " where z.state = :state " ;
+		}
+		$sql .= "order by z.state limit :offset, :limit " ;
 		
 		try {
 			$db = $this->getConnection();
 			$stmt = $db->prepare($sql);
+			if( !is_null( $state ) ) {
+			   $stmt->bindParam( "state", $state ) ;
+			}
 			$stmt->bindParam("offset", $offset, PDO::PARAM_INT);
 			$stmt->bindParam("limit", $limit, PDO::PARAM_INT);
 			$stmt->execute();
