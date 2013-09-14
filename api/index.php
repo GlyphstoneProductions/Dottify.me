@@ -21,6 +21,7 @@ $app->post( '/user', 'createuser' ) ;
 $app->put( '/user', 'updateuser' ) ;
 $app->delete( '/user/:uuid', 'deleteuser' ) ;
 $app->get( '/zipcode', 'listzipcodes') ;
+$app->get( '/ntdsuser', 'listNTDSUsers') ;
 
 // --------------------------------------
 $app->run();
@@ -144,6 +145,19 @@ function listzipcodes( ) {
 	send( $out, $start) ;
 	
 
+}
+
+function listNTDSUsers() {
+	$start = microtime() ;
+	$request = Slim::getInstance()->request();
+	$offset = $request->get( "offset" ) ;
+	$limit = $request->get( "limit" ) ;
+	
+	$mgr = new DottifyManager() ;
+	$out = $mgr->listNTDSUsers( $offset, $limit ) ;
+	send( $out, $start) ;	
+	
+	
 }
 
 // --------------------------------------------------------------

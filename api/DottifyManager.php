@@ -161,7 +161,7 @@ class DottifyManager {
 
 		$offset = ( is_null( $offset ) )? 0 : intval($offset) ;
 		$limit = ( is_null ( $limit))? 100 : intval($limit) ;
-		echo "offset: $offset  limit : $limit\n" ;
+		//echo "offset: $offset  limit : $limit\n" ;
 		
 		$sql = "select zipcode, country, latitude, longitude, state, population" ;
 		$sql .= " FROM zipinfo where population > 0 ORDER BY state LIMIT  :offset, :limit";
@@ -180,6 +180,33 @@ class DottifyManager {
 			return array( "Error" => array( "text" => $message) ) ;
 		}
 
+	}
+	
+	public function listNTDSUsers( $offset, $limit ) {
+
+		$offset = ( is_null( $offset ) )? 0 : intval($offset) ;
+		$limit = ( is_null ( $limit))? 100 : intval($limit) ;
+		
+		$sql = "select n.idcode, n.q10 as zipcode, z.latitude, z.longitude, z.state, n.q2 as assignedgender, n.currentgender, n.complexgender, n.tggnc, n.visualconformity, " ;
+		$sql .= "n.medicaltransition, n.surgicaltransition,	n.sofinal, n.age, n.agecat, n.agefulltime, n.areout, n.workforce, n.unemployment, n.income, " ;
+		$sql .= "n.q11a as 'white', n.q11b as 'black', n.q11c as 'amind', n.q11d as 'latino', n.q11e as 'api', " ;
+		$sql .= "n.q11f as 'mideast', n.q11g as 'multirace' " ;
+		$sql .= "from ntdsdata n join zipinfo z on n.q10 = z.zipcode " ;
+		$sql .= "order by n.q10 limit :offset, :limit " ;
+		
+		try {
+			$db = $this->getConnection();
+			$stmt = $db->prepare($sql);
+			$stmt->bindParam("offset", $offset, PDO::PARAM_INT);
+			$stmt->bindParam("limit", $limit, PDO::PARAM_INT);
+			$stmt->execute();
+			$objs = $stmt->fetchAll(PDO::FETCH_OBJ);
+			$db = null;
+			return $objs ;
+		} catch(PDOException $e) {
+			$message = $e->getMessage() ;
+			return array( "Error" => array( "text" => $message) ) ;
+		}
 	}
 	
 	protected function getVisits() {
