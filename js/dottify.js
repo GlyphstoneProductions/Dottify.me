@@ -4,7 +4,7 @@
 
 	$(document).ready(function () {
 		map = new Map();
-		$('button').button();
+		$('#zip').mapZipCodeField(map);
 	});
 
 	var Map = function() {
@@ -24,3 +24,7 @@
 			createUser();
 		}
 	};
+
+	Map.prototype.zoomTo = function(coordinates) {
+		this.leafletMap.setView([coordinate.lat, coordinate.lng], 4);
+	}
