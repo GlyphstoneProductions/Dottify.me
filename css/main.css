@@ -1,0 +1,61 @@
+@CHARSET "UTF-8";
+
+#page {
+	max-width: 1000px;
+	min-width: 500px;
+	margin: auto;
+	background-color: #E6F7C5;
+}
+
+#center {
+	margin: auto;
+	max-width: 600px;
+}
+
+#map {
+	width: 600px;
+	height: 500px;
+}
+
+body {
+	background-color: #656D76;
+}
+
+#header {
+	margin: auto;
+	width: 700px;
+}
+
+#left {
+	width: 200px;
+	float: left;
+}
+
+#right {
+	width: 200px;
+	float: left;
+}
+
+#footer {
+	height: 200px;
+}
+
+#addMe {
+	background-color: #577618;
+}
+
+#zip {
+	-moz-border-radius: 10px;
+	-webkit-border-radius: 10px;
+	-khtml-border-radius: 10px;
+	border-radius: 10px;
+	width: 240px;
+	background-color: white;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	margin-left: -120px;
+	padding: 10px;
+	font-size: 2em;
+	z-index: 99;
+}
