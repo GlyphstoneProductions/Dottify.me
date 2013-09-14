@@ -159,8 +159,8 @@ class DottifyManager {
 	// list zipcodes from refernce database
 	public function listZipcodes( $offset, $limit ) {
 
-		$offset = ( is_null( $offset ) )? 0 : $offset ;
-		$limit = ( is_null ( $limit))? 100 : $limit ;
+		$offset = ( is_null( $offset ) )? 0 : intval($offset) ;
+		$limit = ( is_null ( $limit))? 100 : intval($limit) ;
 		echo "offset: $offset  limit : $limit\n" ;
 		
 		$sql = "select zipcode, country, latitude, longitude, state, population" ;
