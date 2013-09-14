@@ -80,6 +80,9 @@ class DottifyManager {
 		// unique userid, unique email, 
 		// secure password
 		// valid referring user
+		// log the visit and the ip address
+		// lookup ref user and get their userid (integer)
+		$userip = $_SERVER['REMOTE_ADDR'] ;
 
 		$uuid = uniqid( "dottify", true ) ; // more entropy!
 		$refid = md5( $uuid) ;
@@ -98,12 +101,10 @@ class DottifyManager {
 			$cryptpass = md5( $user->password ) ;
 		}
 		// TODO:
-		// log the visit and the ip address
-		// lookup ref user and get their userid (integer)
-		// look up the lat/long of the zip and compute a random offset as appropriate
-		
-		$sql = "INSERT INTO user (uuid, refid, created, modified, ver, thisver, refuserid, zipcode, username, password, email, userstatus, usertype) " ;
-	    $sql .= "VALUES (:uuid, :refid, :created, :modified, 0, 1, :refuserid, :zipcode, :username, :password, :email, :userstatus, :usertype)";
+
+
+		$sql = "INSERT INTO user (uuid, refid, created, modified, ver, thisver, refuserid, zipcode, username, password, email, userstatus, usertype, userip) " ;
+	    $sql .= "VALUES (:uuid, :refid, :created, :modified, 0, 1, :refuserid, :zipcode, :username, :password, :email, :userstatus, :usertype, :userip)";
 		try {
 			$db = $this->getConnection();
 			$stmt = $db->prepare($sql);
@@ -120,10 +121,14 @@ class DottifyManager {
 			$stmt->bindParam("email", $user->email);
 			$stmt->bindParam("userstatus", $user->userstatus);
 			$stmt->bindParam("usertype", $user->usertype);
+			$stmt->bindParam("userip", $userip) ;
 			$stmt->execute();
 
 			$db = null;
 			$user->password = "" ;	// for security
+						
+			// look up the lat/long of the zip and compute a random offset as appropriate (+- .015 degrees lat and long ) Maybe less for latitude..
+			
 
 			return $user ;
 		} catch(PDOException $e) {
