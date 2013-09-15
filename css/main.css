@@ -4,7 +4,7 @@
 	max-width: 1000px;
 	min-width: 500px;
 	margin: auto;
-	background-color: #E9F7C5;
+	background: #ffffff url('/images/background.png') repeat left top;
 }
 
 #center {
