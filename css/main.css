@@ -62,3 +62,14 @@ body {
 	width: 450px;
 	margin: auto;
 }
+
+#video {
+	display: block;
+	margin: auto;
+	width: 362px;
+	padding: 10px;
+}
+
+#video a {
+	width: 362px;
+}
