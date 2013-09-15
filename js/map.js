@@ -12,7 +12,15 @@ var Map = function(mapDivId, users) {
 	L.tileLayer(this.tileUrl, {
 		attribution: this.attribText
 	}).addTo(this.leafletMap);
+	var map = this;
+	users.on('added', function(e, user) {
+		map.addUser(user);
+	});
 };
+
+Map.prototype.addUser = function(user) {
+	new L.Marker(user.coordinate()).addTo(this.leafletMap);
+}
 
 Map.prototype.zoomTo = function(coordinate) {
 	this.leafletMap.setView([coordinate.lat, coordinate.lng], 9);

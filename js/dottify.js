@@ -1,6 +1,6 @@
 function Dottify() {
-	this.map = new Map('map');
 	this.users = new UsersCollection();
+	this.map = new Map('map', this.users);
 	$('#zip').zipCodeForm(this);
 }
 
@@ -8,7 +8,7 @@ Dottify.prototype.createUser = function(zipCode) {
 	var dottify = this;
 	return User.createFromZipCode(zipCode).done(function(user) {
 		dottify.users.add(user)
-		dottify.map.zoomTo(user.coordinate());
+		dottify.map.zoomTo(user.coordinate(), dottify.users);
 	}).fail(function() {
 		Dottify.alert("Something went wrong with our servers :(. " +
 		 							"Carrier pigeons have been dispatched to the " +
