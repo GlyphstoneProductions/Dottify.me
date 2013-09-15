@@ -3,7 +3,7 @@ function Dottify() {
 	this.map = new Map('map', this.users);
 	this.users.loadAll();
 	$('#zip').zipCodeForm(this);
-	initSharrre();
+	initShare('share');
 }
 
 Dottify.prototype.createUser = function(zipCode) {

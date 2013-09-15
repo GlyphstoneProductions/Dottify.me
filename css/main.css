@@ -1,26 +1,23 @@
 @CHARSET "UTF-8";
 
 #page {
-	max-width: 1000px;
-	min-width: 500px;
+	width: 1200px;
 	margin: auto;
 	background: #ffffff url('/images/background.png') repeat left top;
+	display: block;
 }
 
 #center {
 	margin: auto;
-	max-width: 600px;
+	max-width: 800px;
 	position: relative;
-}
-
-.error {
-	color: red;
-	font-size: .7em;
+	display: block;
 }
 
 #map {
-	width: 600px;
+	width: 800px;
 	height: 500px;
+	display: block;
 }
 
 body {
@@ -30,26 +27,16 @@ body {
 #header {
 	margin: auto;
 	width: 700px;
+	display: block;
 }
 
-#left {
-	width: 200px;
-	float: left;
-	position: relative;
-}
-
-#right {
-	width: 200px;
-	float: left;
-	position: relative;
+#header a {
+	display: block;
 }
 
 #footer {
 	height: 200px;
-}
-
-#addMe {
-	background-color: #577618;
+	display: block;
 }
 
 #zip {
@@ -67,64 +54,11 @@ body {
 	font-size: 0.8em;
 	color: #7D2E19;
 	z-index: 99;
-}
-
-.sharrre {
-	position: fixed;
-	bottom: 50%;
-	margin-top: 25px;
-	right: 30px;
 	display: block;
 }
 
-.sharrre .box {
-    float:left;
-}
-
-.sharrre .count {
-    color:#444444;
-    display:block;
-    font-size:17px;
-    line-height:34px;
-    height:34px;
-    padding:4px 0;
-    position:relative;
-    text-align:center;
-    text-decoration:none;
-    width:50px;
-    background-color:#eee;
-    -webkit-border-radius:4px;
-    -moz-border-radius:4px;
-    border-radius:4px;
-}
-
-.sharrre .share {
-    color:#FFFFFF;
-    display:block;
-    font-size:11px;
-    height:16px;
-    line-height:16px;
-    margin-top:3px;
-    padding:0;
-    text-align:center;
-    text-decoration:none;
-    width:50px;
-    background-color:#9CCE39;
-    -webkit-border-radius:4px;
-    -moz-border-radius:4px;
-    border-radius:4px;
-}
-
-.sharrre .buttons {
-    display:none;
-    position:absolute;
-    margin-left:-60px;
-    z-index:10;
-    max-width: 60px;
-}
-
-.sharrre .button {
-    max-width:50px;
-    margin-right:10px;
-    margin-bottom: 10px;
+#share {
+	display: block;
+	width: 450px;
+	margin: auto;
 }
