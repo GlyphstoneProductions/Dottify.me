@@ -7,6 +7,15 @@ UsersCollection.prototype.add = function(item) {
 	this.trigger("added", item);
 };
 
+UsersCollection.prototype.loadAll = function() {
+	var collection = this;
+	return $.get('api/user').done(function(response){
+		return $.each(JSON.parse(response).elements, function(k, user) {
+			collection.add(new User(user));
+		});
+	});
+}
+
 // We're using jQuery's event system to
 // listen for changes to the data. This lets us
 // decouple our displaying of data changes from the

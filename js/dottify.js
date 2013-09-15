@@ -1,6 +1,7 @@
 function Dottify() {
 	this.users = new UsersCollection();
 	this.map = new Map('map', this.users);
+	this.users.loadAll();
 	$('#zip').zipCodeForm(this);
 }
 

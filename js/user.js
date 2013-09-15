@@ -8,6 +8,9 @@ User.prototype.coordinate = function() {
 		lng: this.data.longitude
 	}
 }
+User.prototype.hasCoordinate = function() {
+	return this.data.latitude && this.data.longitude;
+}
 
 User.createFromZipCode = function(zipCode) {
 	var apiPromise = $.Deferred();

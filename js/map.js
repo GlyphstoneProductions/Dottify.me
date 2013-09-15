@@ -19,7 +19,9 @@ var Map = function(mapDivId, users) {
 };
 
 Map.prototype.addUser = function(user) {
-	new L.Marker(user.coordinate()).addTo(this.leafletMap);
+	if (user.hasCoordinate()) {
+		new L.Marker(user.coordinate()).addTo(this.leafletMap);
+	}
 }
 
 Map.prototype.zoomTo = function(coordinate) {
