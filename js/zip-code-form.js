@@ -17,8 +17,9 @@ $(function() {
 			$container.resetErrors();
 			var zipCode = $field.val();
 			if (isZipCodeValid(zipCode)) {
-				app.createUser(zipCode);
-				$container.hide();
+				app.createUser(zipCode).done(function() {
+					$container.hide();
+				});
 			} else {
 				$container.showErrors({
 					zipcode: ["Please ensure your zip code is either a 5 digit Zip Code, or Zip plus 4 format. (e.g. 12345 or 12345-6789)"]
@@ -26,6 +27,4 @@ $(function() {
 			}
 		});
 	}
-
-
 });

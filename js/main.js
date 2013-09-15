@@ -181,23 +181,3 @@ function renderDetails(user) {
 	$('#refuserid').val(user.refuserid);
 
 }
-
-// Helper function to serialize all the form fields into a JSON string
-function formToJSON() {
-	return JSON.stringify({
-		"uuid": $('#userUUID').val(),
-		"refuserid": $('#refuserid').val(),
-		"zipcode": $('#zipcode').val(),
-		"username": $('#username').val(),
-		"password": $('#password').val(),
-		"email": $('#password').val()
-	});
-}
-
-function slimFormToJSON() {
-	return JSON.stringify({
-		"refuserid": $('#refuserid').val(),
-		"zipcode": $('#zipcode').val()
-	
-	});
-}
