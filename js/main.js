@@ -135,7 +135,7 @@ function updateUser() {
 		contentType: 'application/json',
 		url: rootURL ,
 		dataType: "json",
-		data: formToJSON(),
+		data: slimFormToJSON(),
 		success: function(data, textStatus, jqXHR){
 			alert('User updated successfully');
 		},
@@ -192,5 +192,13 @@ function formToJSON() {
 		"username": $('#username').val(),
 		"password": $('#password').val(),
 		"email": $('#password').val()
+	});
+}
+
+function slimFormToJSON() {
+	return JSON.stringify({
+		"refuserid": $('#refuserid').val(),
+		"zipcode": $('#zipcode').val()
+	
 	});
 }

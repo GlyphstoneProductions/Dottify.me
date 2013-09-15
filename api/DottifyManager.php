@@ -108,9 +108,12 @@ class DottifyManager {
 		}
 		
 		$user->refuser = 0 ;
-		$referringuser = $this->getUserByRefid( $user->refuserid) ;
-		if( !is_null( $referringuser) ) {
-			$user->refuser = intval( $referringuser->id) ;
+		$refuserid = $this->getProp($user, "refuserid", null ) ;
+		if( !empty($refuserid) ) {
+			$referringuser = $this->getUserByRefid( $this->getProp($user, "refuserid", null )) ;
+			if( !is_null( $referringuser) ) {
+				$user->refuser = intval( $referringuser->id) ;
+			}
 		}
 
 
@@ -127,10 +130,10 @@ class DottifyManager {
 			//$stmt->bindParam("thisver", $user->description);
 			$stmt->bindParam("refuserid", $user->refuserid);			// hashed refid
 			$stmt->bindParam("refuser", $user->refuser,  PDO::PARAM_INT) ;  // integer refid
-			$stmt->bindParam("zipcode", $user->zipcode);
-			$stmt->bindParam("username", $user->username);
+			$stmt->bindParam("zipcode", $this->getProp( $user, "zipcode", null));
+			$stmt->bindParam("username", $this->getProp($user, "username", null) );
 			$stmt->bindParam("password", $cryptpass);
-			$stmt->bindParam("email", $user->email);
+			$stmt->bindParam("email", $this->getProp($user, "email", null));
 			$stmt->bindParam("userstatus", $user->userstatus);
 			$stmt->bindParam("usertype", $user->usertype);
 			$stmt->bindParam("userip", $userip) ;
@@ -156,6 +159,96 @@ class DottifyManager {
 		}
 	}
 	
+	private function getProp( $obj, $propname, $default ) {
+		if( property_exists( $obj, $propname )) {
+			return $obj->$propname ;
+		} else {
+			return $default ;
+		}
+	}
+	
+	/** modify user information
+	 * Does not modify:
+	 * uuid, refid, password, created, 
+	 * @param unknown $user
+	 * @return unknown|multitype:multitype:unknown
+	 */
+	public function updateUser( $user ) {
+		
+		error_log('updateuser\n', 3, '/var/tmp/php.log');
+		
+		// validation:
+		// valid zipcode,
+		// unique unique email,
+		// secure password
+		
+		// lookup ref user and get their userid (integer)
+		$userip = $_SERVER['REMOTE_ADDR'] ;
+	
+		$now = $date = date('Y-m-d H:i:s');
+		$this->saveUserVersion( $user ) ;
+		$user->thisver++ ;
+		$user->modified = $now ;
+		$user->userip = $userip ;
+		
+		$sql = "UPDATE user	set modified = :modified, thisver = :thisver, zipcode = :zipcode, username = :username, email = :email, " ;
+		$sql .= "userstatus = :userstatus, usertype = :usertype, userip = :userip " ;
+		$sql .= "where uuid = :uuid and ver = 0 " ;
+		try {
+			$db = $this->getConnection();
+			$stmt = $db->prepare($sql);
+			$stmt->bindParam("uuid", $user->uuid);
+			$stmt->bindParam("modified", $user->modified);
+			$stmt->bindParam("thisver", $user->thisver, PDO::PARAM_INT) ;
+			$stmt->bindParam("zipcode", $user->zipcode);
+			$stmt->bindParam("username", $user->username);
+			$stmt->bindParam("email", $user->email);
+			$stmt->bindParam("userstatus", $user->userstatus);
+			$stmt->bindParam("usertype", $user->usertype);
+			$stmt->bindParam("userip", $user->userip ) ;
+			$stmt->execute();
+			error_log('user updated \n', 3, '/var/tmp/php.log');
+			$db = null;
+			$user->password = "" ;	// for security
+		
+			// look up the lat/long of the zip and compute a random offset as appropriate (+- .015 degrees lat and long ) Maybe less for latitude..
+			$usercache = $this->updateUserCache($user->id, $user->zipcode, $userip ) ;
+			$user->latitude = $usercache->latitude ;
+			$user->longitude = $usercache->longitude ;
+		
+			return $user ;
+		} catch(PDOException $e) {
+			$message = $e->getMessage() ;
+			error_log("Error creating user: $message\n", 3, '/var/tmp/php.log');
+			return array( "Error" => array( "text" => $message) ) ;
+		}
+		
+	}
+	
+	/** save the current version of the user as ver = thisver
+	 * 
+	 * @param unknown $user
+	 */
+	public function saveUserVersion( $user ) {
+		
+		$sql = "INSERT INTO user( id, uuid, refid, ver, thisver, username, created, modified, refuser, " ;
+		$sql .= "refuserid,  password, email, zipcode, countrycode, usertype, userstatus, mecon, userip ) " ;
+		$sql .= "SELECT u.id, u.uuid, u.refid, u.thisver, u.thisver, u.username, u.created, u.modified, u.refuser, " ;
+		$sql .= "u.refuserid, u.password, u.email, u.zipcode, u.countrycode, u.usertype, u.userstatus, u.mecon, u.userip ) from user u where u.uuid = :uuid" ;
+		try {
+			$db = $this->getConnection();
+			$stmt = $db->prepare($sql);
+			$stmt->bindParam("uuid", $user->uuid);
+			$stmt->execute();
+			error_log('userversioned \n', 3, '/var/tmp/php.log');
+			return $user ;
+		} catch(PDOException $e) {
+			$message = $e->getMessage() ;
+			error_log("Error creating user version: $message\n", 3, '/var/tmp/php.log');
+			return array( "Error" => array( "text" => $message) ) ;
+		}
+	}
+	
 	public function createUserCache( $userid, $zipcode, $userip ) {
 		error_log('addusercache\n', 3, '/var/tmp/php.log');
 			
@@ -175,6 +268,52 @@ class DottifyManager {
 
 		$sql = "INSERT INTO usercache (id, lastip, latitude, longitude) " ;
 		$sql .= "VALUES (:id, :lastip, :latitude, :longitude )";
+		try {
+			$db = $this->getConnection();
+			$stmt = $db->prepare($sql);
+			$stmt->bindParam("id", $userCache->id, PDO::PARAM_INT );
+			$stmt->bindParam("lastip", $userCache->lastip);		// my refid
+			$stmt->bindParam("latitude", $userCache->latitude);
+			$stmt->bindParam("longitude", $userCache->longitude);
+		
+			$stmt->execute();
+		
+			$db = null;
+	
+			return $userCache ;
+		} catch(PDOException $e) {
+			$message = $e->getMessage() ;
+			error_log("Error creating user: $message\n", 3, '/var/tmp/php.log');
+			return array( "Error" => array( "text" => $message) ) ;
+		}
+	}
+	
+	/** 
+	 * rewrite the usercache if the zipcode has changed.
+	 * @param unknown $userid
+	 * @param unknown $zipcode
+	 * @param unknown $userip
+	 * @return UserCache|multitype:multitype:unknown
+	 */
+	public function updateUserCache( $userid, $zipcode, $userip ) {
+		error_log('updateusercache\n', 3, '/var/tmp/php.log');
+			
+		$userCache = new UserCache() ;
+		$userCache->id = $userid ;
+		$userCache->lastip = $userip ;
+		$zipinfo = $this->getZipcodeInfo( $zipcode ) ;
+		
+		if( !is_null($zipinfo )) {
+			$lat = $zipinfo->latitude ;
+			$long = $zipinfo->longitude ;
+			$latoffset = -0.015 + $this->getRandFloat( 300 ) ;   // +/- 0.015  degrees should be about 1 mile radius?
+			$longoffset = -0.015 + $this->getRandFloat( 300 ) ;
+			$userCache->latitude = $lat + $latoffset ;
+			$userCache->longitude = $long + $longoffset;
+		}
+
+		$sql = "UPDATE usercache ( lastip, latitude, longitude) " ;
+		$sql .= "VALUES ( :lastip, :latitude, :longitude ) where ip = :ip";
 		try {
 			$db = $this->getConnection();
 			$stmt = $db->prepare($sql);
