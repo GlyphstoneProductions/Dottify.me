@@ -4,7 +4,7 @@ var rootURL = "api" ;
 
 var currentUser;
 
-// Retrieve wine list when application starts 
+// Retrieve wine list when application starts
 // findAll();
 
 // Nothing to delete in initial application state
@@ -55,7 +55,7 @@ $("img").error(function(){
 });
 
 function search(searchKey) {
-	if (searchKey == '') 
+	if (searchKey == '')
 		findAll();
 	else
 		findByName(searchKey);
@@ -83,13 +83,13 @@ function findByName(searchKey) {
 		type: 'GET',
 		url: rootURL + '/search/' + searchKey,
 		dataType: "json",
-		success: renderList 
+		success: renderList
 	});
 }
 
 function findById(uuid) {
 	console.log('findById: ' + uuid);
-	
+
 	$.ajax({
 		type: 'GET',
 		url: rootURL + '/user/' + uuid,
@@ -115,7 +115,7 @@ function createUser() {
 		dataType: "json",
 		data: formToJSON(),
 		success: function(data, textStatus, jqXHR){
-			console.log('create user success: ' + data.uuid);			
+			console.log('create user success: ' + data.uuid);
 			// alert('User created successfully');
 			$('#btnDelete').show();
 			//$('#userUUID').val(data.uuid);
@@ -186,7 +186,7 @@ function renderDetails(user) {
 // Helper function to serialize all the form fields into a JSON string
 function formToJSON() {
 	return JSON.stringify({
-		"uuid": $('#userUUID').val(), 
+		"uuid": $('#userUUID').val(),
 		"refuserid": $('#refuserid').val(),
 		"zipcode": $('#zipcode').val(),
 		"username": $('#username').val(),
