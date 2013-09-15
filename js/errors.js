@@ -8,7 +8,6 @@ $(function() {
 			})
 			$form.find('input[name="' + field + '"]').after(errorsHtml);
 		});
-
 	}
 
 	$.fn.resetErrors = function() {

@@ -116,13 +116,12 @@ function createUser() {
 		data: formToJSON(),
 		success: function(data, textStatus, jqXHR){
 			console.log('create user success: ' + data.uuid);
-			// alert('User created successfully');
 			$('#btnDelete').show();
-			//$('#userUUID').val(data.uuid);
 			currentUser = data;
 			renderDetails(currentUser);
 		},
 		error: function(jqXHR, textStatus, errorThrown){
+
 			alert('create User error: ' + textStatus);
 		}
 	});

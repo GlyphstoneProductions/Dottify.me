@@ -7,6 +7,12 @@ $(function() {
 		var $container = $(this);
 		var $field = $container.find('input');
 		var $button = $container.find('button');
+		var $noThanksLink = $container.find('a');
+
+		$noThanksLink.on('click', function() {
+			$container.hide();
+		});
+
 		$button.on('click', function() {
 			$container.resetErrors();
 			var zipCode = $field.val();
