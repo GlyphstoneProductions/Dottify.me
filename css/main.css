@@ -118,7 +118,7 @@ body {
 .sharrre .buttons {
     display:none;
     position:absolute;
-    margin-left:-90px;
+    margin-left:-60px;
     z-index:10;
     max-width: 60px;
 }
