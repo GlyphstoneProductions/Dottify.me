@@ -32,10 +32,16 @@ $('#btnAdd').click(function() {
 });
 
 $('#btnSave').click(function() {
-	if ($('#userUUID').val() == '')
+	
+	if ($('#userUUID').val() == '') {
+		console.log('save create user') ;
 		createUser();
-	else
+	} else {
+		console.log( 'userid exists, update user ' ) ;
 		updateUser();
+		
+	}
+   
 	return false;
 });
 
@@ -44,9 +50,9 @@ $('#btnDelete').click(function() {
 	return false;
 });
 
-$('#userList a').live('click', function() {
-	findById($(this).data('identity'));
-});
+//$('#userList a').live('click', function() {
+//	findById($(this).data('identity'));
+//});
 
 // Replace broken images with generic wine bottle
 $("img").error(function(){
@@ -108,12 +114,13 @@ function findById(uuid) {
 
 function createUser() {
 	console.log('createUser');
+	
 	$.ajax({
 		type: 'POST',
 		contentType: 'application/json',
 		url: rootURL + '/user',
 		dataType: "json",
-		data: slimFormToJSON(),
+		data: formToJSON(),
 		success: function(data, textStatus, jqXHR){
 			console.log('create user success: ' + data.uuid);
 			$('#btnDelete').show();
@@ -125,6 +132,7 @@ function createUser() {
 			alert('create User error: ' + textStatus);
 		}
 	});
+	console.log( 'done creating' ) ;
 }
 
 function updateUser() {
@@ -180,4 +188,24 @@ function renderDetails(user) {
 	$('#email').val(user.email);
 	$('#refuserid').val(user.refuserid);
 
+}
+
+//Helper function to serialize all the form fields into a JSON string
+function formToJSON() {
+	return JSON.stringify({
+		"uuid": $('#userUUID').val(), 
+		"refuserid": $('#refuserid').val(),
+		"zipcode": $('#zipcode').val(),
+		"username": $('#username').val(),
+		"password": $('#password').val(),
+		"email": $('#password').val()
+	});
+}
+
+function slimFormToJSON() {
+	return JSON.stringify({
+		"refuserid": $('#refuserid').val(),
+		"zipcode": $('#zipcode').val()
+
+	});
 }

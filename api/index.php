@@ -57,7 +57,7 @@ function validateuser() {
 	$start = microtime() ;
 	$request = Slim::getInstance()->request();
 	$user = json_decode($request->getBody());
-	$mode = $reqest->params("mode") ;
+	$mode = $request->params("mode") ;
 	$attributes = $request->params( "attr" ) ;
 	if( !empty( $attributes)) {
 		$attributes = explode( ',', $attributes) ;
@@ -87,8 +87,9 @@ function updateuser() {
 	$start = microtime() ;
 	$request = Slim::getInstance()->request();
 	$user = json_decode($request->getBody());
+	$norev = $request->params("norev") ;
 	$mgr = new DottifyManager() ;
-	$userout = $mgr->updateUser( $user ) ;
+	$userout = $mgr->updateUser( $user, $norev ) ;
 	send( $userout, $start) ;
 }
 
