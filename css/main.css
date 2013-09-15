@@ -10,6 +10,7 @@
 #center {
 	margin: auto;
 	max-width: 600px;
+	position: relative;
 }
 
 #map {
@@ -29,11 +30,13 @@ body {
 #left {
 	width: 200px;
 	float: left;
+	position: relative;
 }
 
 #right {
 	width: 200px;
 	float: left;
+	position: relative;
 }
 
 #footer {
@@ -56,6 +59,7 @@ body {
 	left: 50%;
 	margin-left: -120px;
 	padding: 10px;
-	font-size: 2em;
+	font-size: 0.8em;
+	color: #7D2E19;
 	z-index: 99;
 }
