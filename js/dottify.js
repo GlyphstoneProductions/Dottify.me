@@ -11,6 +11,9 @@
 	$(document).ready(function () {
 		map = new Map();
 		$('#' + SIGNUP_BUTTON).hide();
+		$('#zip').mapZipCodeField({
+			createUser: createUser
+		});
 	});
 	
 	var Map = function() {
@@ -22,12 +25,6 @@
 			attribution: this.attribText
 		}).addTo(this.leafletMap);
 	};
-	
-	var handleEnterZipCode = function () {
-		createUser();
-		$('#' + ZIP_DIV_NAME).hide();
-	};
-	
 	var handleCloseZipCodePopup = function () {
 		$('#' + ZIP_DIV_NAME).hide();
 		$('#' + SIGNUP_BUTTON).show();
