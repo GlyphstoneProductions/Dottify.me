@@ -103,8 +103,9 @@ class DottifyManager {
 		$user->usertype = 0 ; // default user type
 		$user->userstatus = 0 ; // status active for now
 		$cryptpass = null ;
-		if( !is_null( $user->password)) {
-			$cryptpass = md5( $user->password ) ;
+		$password = $this->getProp( $user, "password", null ) ;
+		if( !is_null( $password )) {
+			$cryptpass = md5( $password ) ;
 		}
 		
 		$user->refuser = 0 ;

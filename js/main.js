@@ -113,7 +113,7 @@ function createUser() {
 		contentType: 'application/json',
 		url: rootURL + '/user',
 		dataType: "json",
-		data: formToJSON(),
+		data: slimFormToJSON(),
 		success: function(data, textStatus, jqXHR){
 			console.log('create user success: ' + data.uuid);			
 			// alert('User created successfully');
@@ -135,7 +135,7 @@ function updateUser() {
 		contentType: 'application/json',
 		url: rootURL ,
 		dataType: "json",
-		data: slimFormToJSON(),
+		data: formToJSON(),
 		success: function(data, textStatus, jqXHR){
 			alert('User updated successfully');
 		},
