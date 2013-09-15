@@ -4,7 +4,7 @@ var rootURL = "api" ;
 
 var currentUser;
 
-// Retrieve wine list when application starts 
+// Retrieve wine list when application starts
 // findAll();
 
 // Nothing to delete in initial application state
@@ -55,7 +55,7 @@ $("img").error(function(){
 });
 
 function search(searchKey) {
-	if (searchKey == '') 
+	if (searchKey == '')
 		findAll();
 	else
 		findByName(searchKey);
@@ -83,13 +83,13 @@ function findByName(searchKey) {
 		type: 'GET',
 		url: rootURL + '/search/' + searchKey,
 		dataType: "json",
-		success: renderList 
+		success: renderList
 	});
 }
 
 function findById(uuid) {
 	console.log('findById: ' + uuid);
-	
+
 	$.ajax({
 		type: 'GET',
 		url: rootURL + '/user/' + uuid,
@@ -115,14 +115,13 @@ function createUser() {
 		dataType: "json",
 		data: slimFormToJSON(),
 		success: function(data, textStatus, jqXHR){
-			console.log('create user success: ' + data.uuid);			
-			// alert('User created successfully');
+			console.log('create user success: ' + data.uuid);
 			$('#btnDelete').show();
-			//$('#userUUID').val(data.uuid);
 			currentUser = data;
 			renderDetails(currentUser);
 		},
 		error: function(jqXHR, textStatus, errorThrown){
+
 			alert('create User error: ' + textStatus);
 		}
 	});
@@ -181,24 +180,4 @@ function renderDetails(user) {
 	$('#email').val(user.email);
 	$('#refuserid').val(user.refuserid);
 
-}
-
-// Helper function to serialize all the form fields into a JSON string
-function formToJSON() {
-	return JSON.stringify({
-		"uuid": $('#userUUID').val(), 
-		"refuserid": $('#refuserid').val(),
-		"zipcode": $('#zipcode').val(),
-		"username": $('#username').val(),
-		"password": $('#password').val(),
-		"email": $('#password').val()
-	});
-}
-
-function slimFormToJSON() {
-	return JSON.stringify({
-		"refuserid": $('#refuserid').val(),
-		"zipcode": $('#zipcode').val()
-	
-	});
 }

@@ -13,6 +13,11 @@
 	position: relative;
 }
 
+.error {
+	color: red;
+	font-size: .7em;
+}
+
 #map {
 	width: 600px;
 	height: 500px;

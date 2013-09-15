@@ -1,38 +1,28 @@
-	
-	var MAP_DIV_NAME = 'map';
-	var ZIP_DIV_NAME = 'zip';
-	var SIGNUP_BUTTON = 'signUp';
-	var US_GEO_CTR_LAT = 39.83;
-	var US_GEO_CTR_LNG = -98.58;
-	var NA_ZOOM = 3;
-	var map;
-	
-		
-	$(document).ready(function () {
-		map = new Map();
-		$('#' + SIGNUP_BUTTON).hide();
-	});
-	
-	var Map = function() {
-		this.attribText = 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://cloudmade.com">CloudMade</a>';
-		this.tileUrl = 'http://{s}.tile.osm.org/{z}/{x}/{y}.png';
-		
-		this.leafletMap = L.map(MAP_DIV_NAME).setView([US_GEO_CTR_LAT, US_GEO_CTR_LNG], NA_ZOOM);
-		L.tileLayer(this.tileUrl, {
-			attribution: this.attribText
-		}).addTo(this.leafletMap);
-	};
-	
-	var handleEnterZipCode = function () {
-		createUser();
-		$('#' + ZIP_DIV_NAME).hide();
-	};
-	
-	var handleCloseZipCodePopup = function () {
-		$('#' + ZIP_DIV_NAME).hide();
-		$('#' + SIGNUP_BUTTON).show();
-	}
+function Dottify() {
+	this.users = new UsersCollection();
+	this.map = new Map('map', this.users);
+	this.users.loadAll();
+	$('#zip').zipCodeForm(this);
+}
 
-	Map.prototype.zoomTo = function(coordinates) {
-		this.leafletMap.setView([coordinate.lat, coordinate.lng], 4);
-	}
+Dottify.prototype.createUser = function(zipCode) {
+	var dottify = this;
+	return User.createFromZipCode(zipCode).done(function(user) {
+		dottify.users.add(user)
+		dottify.map.zoomTo(user.coordinate(), dottify.users);
+	}).fail(function() {
+		Dottify.alert("Something went wrong with our servers :(. " +
+		 							"Carrier pigeons have been dispatched to the " +
+		 							"developers. Try again soon!");
+	});
+}
+
+Dottify.alert = function(text) {
+	// We're wrapping `alert` so if we want to use a modal
+	// or something later it will be easier to do so.
+	window.alert(text);
+}
+
+$(document).ready(function () {
+	var dottify = new Dottify('#page');
+});
