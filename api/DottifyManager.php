@@ -202,10 +202,10 @@ class DottifyManager {
 			$stmt->bindParam("modified", $user->modified);
 			$stmt->bindParam("thisver", $user->thisver, PDO::PARAM_INT) ;
 			$stmt->bindParam("zipcode", $user->zipcode);
-			$stmt->bindParam("username", $user->username);
-			$stmt->bindParam("email", $user->email);
-			$stmt->bindParam("userstatus", $user->userstatus);
-			$stmt->bindParam("usertype", $user->usertype);
+			$stmt->bindParam("username",  $this->getProp( $user, "username", null));
+			$stmt->bindParam("email", $this->getProp( $user, "email"));
+			//$stmt->bindParam("userstatus", $this->getProp( user, "userstatus"));
+			//$stmt->bindParam("usertype", $this->getProp( $user, "usertype"));
 			$stmt->bindParam("userip", $user->userip ) ;
 			$stmt->execute();
 			error_log('user updated \n', 3, '/var/tmp/php.log');
