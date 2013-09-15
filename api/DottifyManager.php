@@ -174,7 +174,7 @@ class DottifyManager {
 	 * @param unknown $user
 	 * @return unknown|multitype:multitype:unknown
 	 */
-	public function updateUser( $user ) {
+	public function updateUser( $user, $norev ) {
 		
 		error_log('updateuser\n', 3, '/var/tmp/php.log');
 		
@@ -187,8 +187,11 @@ class DottifyManager {
 		$userip = $_SERVER['REMOTE_ADDR'] ;
 	
 		$now = $date = date('Y-m-d H:i:s');
-		$this->saveUserVersion( $user ) ;
-		$user->thisver++ ;
+		if( !$norev ) {
+			$this->saveUserVersion( $user ) ;
+			$user->thisver++ ;
+		}
+		
 		$user->modified = $now ;
 		$user->userip = $userip ;
 		
