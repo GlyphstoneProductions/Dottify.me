@@ -21,6 +21,7 @@ $app->post( '/user', 'createuser' ) ;
 $app->put( '/user', 'updateuser' ) ;
 $app->delete( '/user/:uuid', 'deleteuser' ) ;
 $app->get( '/zipcode', 'listzipcodes') ;
+$app->get( '/zipcode/:zip', 'getzipinfo') ;
 $app->get( '/ntdsuser', 'listNTDSUsers') ;
 
 // --------------------------------------
@@ -83,27 +84,12 @@ function revalidateuser( $uuid ) {
 }
 
 function updateuser() {
+	$start = microtime() ;
 	$request = Slim::getInstance()->request();
-	$body = $request->getBody();
-	$wine = json_decode($body);
-	$sql = "UPDATE wine SET name=:name, grapes=:grapes, country=:country, region=:region, year=:year, description=:description WHERE id=:id";
-	try {
-		$db = getConnection();
-		$stmt = $db->prepare($sql);
-		$stmt->bindParam("name", $wine->name);
-		$stmt->bindParam("grapes", $wine->grapes);
-		$stmt->bindParam("country", $wine->country);
-		$stmt->bindParam("region", $wine->region);
-		$stmt->bindParam("year", $wine->year);
-		$stmt->bindParam("description", $wine->description);
-		$stmt->bindParam("id", $id);
-		$stmt->execute();
-		$db = null;
-		header( "Content-type: application/json") ;
-		echo json_encode($wine);
-	} catch(PDOException $e) {
-		echo '{"error":{"text":'. $e->getMessage() .'}}';
-	}
+	$user = json_decode($request->getBody());
+	$mgr = new DottifyManager() ;
+	$userout = $mgr->updateUser( $user ) ;
+	send( $userout, $start) ;
 }
 
 function deleteuser($uuid) {
@@ -145,6 +131,14 @@ function listzipcodes( ) {
 	send( $out, $start) ;
 	
 
+}
+
+function getzipinfo($zipcode) {
+	$start = microtime() ;
+
+	$mgr = new DottifyManager() ;
+	$out = $mgr->getZipcodeInfo( $zipcode ) ;
+	send( $out, $start) ;
 }
 
 function listNTDSUsers() {

@@ -9,14 +9,16 @@
 require_once "User.php" ;
 require_once "Validation.php" ;
 require_once "Zipcode.php" ;
+require_once "UserCache.php" ;
 
 class DottifyManager {
 	
 	public function listusers() {
 		//$this->showSession() ;
 		
-		$sql = "select id, uuid, refid, ver, thisver, username, created, modified, refuser, refuserid, email, zipcode, countrycode, usertype, userstatus, mecon " ;
-		$sql .= "FROM user WHERE ver = 0 ORDER BY created";
+		$sql = "select u.id, u.uuid, u.refid, u.ver, u.thisver, u.username, u.created, u.modified, u.refuser, u.refuserid, u.email, u.zipcode, " ;
+		$sql .= " u.countrycode, u.usertype, u.userstatus, u.mecon, u.userip, c.latitude, c.longitude " ;
+		$sql .= "FROM user u join usercache c on u.id = c.id WHERE u.ver = 0 ORDER BY u.created";
 		try {
 			$db = $this->getConnection();
 			$stmt = $db->query($sql);
@@ -33,7 +35,12 @@ class DottifyManager {
 	}
 	
 	public function getUserByUuid( $uuid ) {
-		$sql = "SELECT * FROM user WHERE uuid=:uuid and ver = 0";
+
+		$sql = "select u.id, u.uuid, u.refid, u.ver, u.thisver, u.username, u.created, u.modified, u.refuser, u.refuserid, u.email, u.zipcode, " ;
+		$sql .= " u.countrycode, u.usertype, u.userstatus, u.mecon, u.userip, c.latitude, c.longitude " ;
+		$sql .= "FROM user u join usercache c on u.id = c.id WHERE u.uuid = :uuid AND u.ver = 0";
+		
+		//$sql = "SELECT * FROM user WHERE uuid=:uuid and ver = 0";
 		try {
 			$db = $this->getConnection();
 			$stmt = $db->prepare($sql);
@@ -80,7 +87,6 @@ class DottifyManager {
 		// unique userid, unique email, 
 		// secure password
 		// valid referring user
-		// log the visit and the ip address
 		// lookup ref user and get their userid (integer)
 		$userip = $_SERVER['REMOTE_ADDR'] ;
 
@@ -100,21 +106,27 @@ class DottifyManager {
 		if( !is_null( $user->password)) {
 			$cryptpass = md5( $user->password ) ;
 		}
-		// TODO:
+		
+		$user->refuser = 0 ;
+		$referringuser = $this->getUserByRefid( $user->refuserid) ;
+		if( !is_null( $referringuser) ) {
+			$user->refuser = intval( $referringuser->id) ;
+		}
 
 
-		$sql = "INSERT INTO user (uuid, refid, created, modified, ver, thisver, refuserid, zipcode, username, password, email, userstatus, usertype, userip) " ;
-	    $sql .= "VALUES (:uuid, :refid, :created, :modified, 0, 1, :refuserid, :zipcode, :username, :password, :email, :userstatus, :usertype, :userip)";
+		$sql = "INSERT INTO user (uuid, refid, created, modified, ver, thisver, refuserid, refuser, zipcode, username, password, email, userstatus, usertype, userip) " ;
+	    $sql .= "VALUES (:uuid, :refid, :created, :modified, 0, 1, :refuserid, :refuser, :zipcode, :username, :password, :email, :userstatus, :usertype, :userip)";
 		try {
 			$db = $this->getConnection();
 			$stmt = $db->prepare($sql);
 			$stmt->bindParam("uuid", $user->uuid);
-			$stmt->bindParam("refid", $user->refid);
+			$stmt->bindParam("refid", $user->refid);		// my refid
 			$stmt->bindParam("created", $user->created);
 			$stmt->bindParam("modified", $user->modified);
 			//$stmt->bindParam("ver", $user->year);
 			//$stmt->bindParam("thisver", $user->description);
-			$stmt->bindParam("refuserid", $user->refuserid);
+			$stmt->bindParam("refuserid", $user->refuserid);			// hashed refid
+			$stmt->bindParam("refuser", $user->refuser,  PDO::PARAM_INT) ;  // integer refid
 			$stmt->bindParam("zipcode", $user->zipcode);
 			$stmt->bindParam("username", $user->username);
 			$stmt->bindParam("password", $cryptpass);
@@ -123,12 +135,18 @@ class DottifyManager {
 			$stmt->bindParam("usertype", $user->usertype);
 			$stmt->bindParam("userip", $userip) ;
 			$stmt->execute();
+			error_log('useradded \n', 3, '/var/tmp/php.log');
+			$newid = intval( $db->lastInsertId() ) ;
+			$user->id = $newid ;
+			error_log("new user id $newid\n", 3, '/var/tmp/php.log');
 
 			$db = null;
 			$user->password = "" ;	// for security
 						
 			// look up the lat/long of the zip and compute a random offset as appropriate (+- .015 degrees lat and long ) Maybe less for latitude..
-			
+			$usercache = $this->createUserCache($user->id, $user->zipcode, $userip ) ;
+			$user->latitude = $usercache->latitude ;
+			$user->longitude = $usercache->longitude ;
 
 			return $user ;
 		} catch(PDOException $e) {
@@ -136,6 +154,53 @@ class DottifyManager {
 			error_log("Error creating user: $message\n", 3, '/var/tmp/php.log');
 			return array( "Error" => array( "text" => $message) ) ;
 		}
+	}
+	
+	public function createUserCache( $userid, $zipcode, $userip ) {
+		error_log('addusercache\n', 3, '/var/tmp/php.log');
+			
+		$userCache = new UserCache() ;
+		$userCache->id = $userid ;
+		$userCache->lastip = $userip ;
+		$zipinfo = $this->getZipcodeInfo( $zipcode ) ;
+		
+		if( !is_null($zipinfo )) {
+			$lat = $zipinfo->latitude ;
+			$long = $zipinfo->longitude ;
+			$latoffset = -0.015 + $this->getRandFloat( 300 ) ;   // +/- 0.015  degrees should be about 1 mile radius?
+			$longoffset = -0.015 + $this->getRandFloat( 300 ) ;
+			$userCache->latitude = $lat + $latoffset ;
+			$userCache->longitude = $long + $longoffset;
+		}
+
+		$sql = "INSERT INTO usercache (id, lastip, latitude, longitude) " ;
+		$sql .= "VALUES (:id, :lastip, :latitude, :longitude )";
+		try {
+			$db = $this->getConnection();
+			$stmt = $db->prepare($sql);
+			$stmt->bindParam("id", $userCache->id, PDO::PARAM_INT );
+			$stmt->bindParam("lastip", $userCache->lastip);		// my refid
+			$stmt->bindParam("latitude", $userCache->latitude);
+			$stmt->bindParam("longitude", $userCache->longitude);
+		
+			$stmt->execute();
+		
+			$db = null;
+	
+			return $userCache ;
+		} catch(PDOException $e) {
+			$message = $e->getMessage() ;
+			error_log("Error creating user: $message\n", 3, '/var/tmp/php.log');
+			return array( "Error" => array( "text" => $message) ) ;
+		}
+	}
+	
+	public function getRandFloat( $max ) {
+		
+		$irnd = mt_rand( 0, $max ) ;
+		$rnd = (double)$irnd / 10000.00 ;
+		return $rnd ;
+		
 	}
 	
 	public function validateUser( $user, $attributes, $mode ) {
@@ -159,6 +224,23 @@ class DottifyManager {
 			return "User Not Found" ;
 		}
 	
+	}
+	
+	public function getZipcodeInfo( $zipcode ) {
+		$sql = "SELECT * FROM zipinfo WHERE zipcode=:zipcode ";
+		try {
+			$db = $this->getConnection();
+			$stmt = $db->prepare($sql);
+			$stmt->bindParam("zipcode", $zipcode);
+			$stmt->execute();
+			$obj = $stmt->fetchObject("Zipcode") ;
+			$db = null;
+			return $obj ;
+		} catch(PDOException $e) {
+			$message = $e->getMessage() ;
+			return array( "Error" => array( "text" => $message) ) ;
+		}
+		
 	}
 	
 	// list zipcodes from refernce database
