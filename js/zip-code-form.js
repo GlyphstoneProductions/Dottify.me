@@ -1,7 +1,7 @@
 $(function() {
 
 	function isZipCodeValid(zipCode) {
-		return zipCode.match(/^\d{5}(-\d{4})?$/)
+		return zipCode.match(/^\d{5}$/)
 	};
 	$.fn.zipCodeForm = function(app) {
 		var $container = $(this);
@@ -22,7 +22,7 @@ $(function() {
 				});
 			} else {
 				$container.showErrors({
-					zipcode: ["Please ensure your zip code is either a 5 digit Zip Code, or Zip plus 4 format. (e.g. 12345 or 12345-6789)"]
+					zipcode: ["Please enter just a 5 digit Zip Code."]
 				});
 			}
 		});

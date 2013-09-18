@@ -80,7 +80,8 @@ class DottifyManager {
 	 * @return unknown|multitype:multitype:unknown
 	 */
 	public function createUser( $user ) {
-		error_log('adduser\n', 3, '/var/tmp/php.log');
+		$created = $date = date('Y-m-d H:i:s');
+		error_log("adduser $created \n", 3, '/var/tmp/php.log');
 		
 		// validation:
 		// valid zipcode, 
@@ -92,7 +93,7 @@ class DottifyManager {
 
 		$uuid = uniqid( "dottify", true ) ; // more entropy!
 		$refid = md5( $uuid) ;
-		$created = $date = date('Y-m-d H:i:s');
+		// $created = $date = date('Y-m-d H:i:s');
 		// add to object
 		$user->uuid = $uuid ;
 		$user->refid = $refid ;
@@ -155,15 +156,17 @@ class DottifyManager {
 			return $user ;
 		} catch(PDOException $e) {
 			$message = $e->getMessage() ;
-			error_log("Error creating user: $message\n", 3, '/var/tmp/php.log');
+			error_log("Error creating user: $message... \n", 3, '/var/tmp/php.log');
 			return array( "Error" => array( "text" => $message) ) ;
 		}
 	}
 	
 	private function getProp( $obj, $propname, $default ) {
+		error_log("get property $propname \n", 3, '/var/tmp/php.log');
 		if( property_exists( $obj, $propname )) {
 			return $obj->$propname ;
 		} else {
+			error_log("prop $propname not found \n", 3, '/var/tmp/php.log');
 			return $default ;
 		}
 	}
@@ -175,8 +178,9 @@ class DottifyManager {
 	 * @return unknown|multitype:multitype:unknown
 	 */
 	public function updateUser( $user, $norev ) {
-		
-		error_log('updateuser\n', 3, '/var/tmp/php.log');
+		$now = $date = date('Y-m-d H:i:s');
+
+		error_log("updateuser $now  norev=$norev\n", 3, '/var/tmp/php.log');
 		
 		// validation:
 		// valid zipcode,
@@ -186,19 +190,21 @@ class DottifyManager {
 		// lookup ref user and get their userid (integer)
 		$userip = $_SERVER['REMOTE_ADDR'] ;
 	
-		$now = $date = date('Y-m-d H:i:s');
+		//$now = $date = date('Y-m-d H:i:s');
 		if( !$norev ) {
+			error_log("save user version \n", 3, '/var/tmp/php.log');			
 			$this->saveUserVersion( $user ) ;
-			$user->thisver++ ;
+			$user->thisver = $user->thisver + 1  ;
 		}
 		
 		$user->modified = $now ;
 		$user->userip = $userip ;
 		
 		$sql = "UPDATE user	set modified = :modified, thisver = :thisver, zipcode = :zipcode, username = :username, email = :email, " ;
-		$sql .= "userstatus = :userstatus, usertype = :usertype, userip = :userip " ;
+		$sql .= " userip = :userip " ;
 		$sql .= "where uuid = :uuid and ver = 0 " ;
 		try {
+			error_log("do update\n", 3, '/var/tmp/php.log');
 			$db = $this->getConnection();
 			$stmt = $db->prepare($sql);
 			$stmt->bindParam("uuid", $user->uuid);
@@ -206,19 +212,19 @@ class DottifyManager {
 			$stmt->bindParam("thisver", $user->thisver, PDO::PARAM_INT) ;
 			$stmt->bindParam("zipcode", $user->zipcode);
 			$stmt->bindParam("username",  $this->getProp( $user, "username", null));
-			$stmt->bindParam("email", $this->getProp( $user, "email"));
+			$stmt->bindParam("email", $this->getProp( $user, "email", null));
 			//$stmt->bindParam("userstatus", $this->getProp( user, "userstatus"));
 			//$stmt->bindParam("usertype", $this->getProp( $user, "usertype"));
 			$stmt->bindParam("userip", $user->userip ) ;
 			$stmt->execute();
-			error_log('user updated \n', 3, '/var/tmp/php.log');
+			error_log("user updated \n", 3, '/var/tmp/php.log');	
 			$db = null;
 			$user->password = "" ;	// for security
 		
 			// look up the lat/long of the zip and compute a random offset as appropriate (+- .015 degrees lat and long ) Maybe less for latitude..
-			$usercache = $this->updateUserCache($user->id, $user->zipcode, $userip ) ;
-			$user->latitude = $usercache->latitude ;
-			$user->longitude = $usercache->longitude ;
+			//$usercache = $this->updateUserCache($user->id, $user->zipcode, $userip ) ;
+			//$user->latitude = $usercache->latitude ;
+			//$user->longitude = $usercache->longitude ;
 		
 			return $user ;
 		} catch(PDOException $e) {
@@ -238,7 +244,7 @@ class DottifyManager {
 		$sql = "INSERT INTO user( id, uuid, refid, ver, thisver, username, created, modified, refuser, " ;
 		$sql .= "refuserid,  password, email, zipcode, countrycode, usertype, userstatus, mecon, userip ) " ;
 		$sql .= "SELECT u.id, u.uuid, u.refid, u.thisver, u.thisver, u.username, u.created, u.modified, u.refuser, " ;
-		$sql .= "u.refuserid, u.password, u.email, u.zipcode, u.countrycode, u.usertype, u.userstatus, u.mecon, u.userip ) from user u where u.uuid = :uuid" ;
+		$sql .= "u.refuserid, u.password, u.email, u.zipcode, u.countrycode, u.usertype, u.userstatus, u.mecon, u.userip from user u where u.uuid = :uuid" ;
 		try {
 			$db = $this->getConnection();
 			$stmt = $db->prepare($sql);

@@ -22,6 +22,7 @@
 
 body {
 	background-color: #13355B;
+	font-family: Verdana, Geneva, sans-serif ;
 }
 
 #header {
@@ -37,6 +38,8 @@ body {
 #footer {
 	height: 200px;
 	display: block;
+	text-align:center
+	
 }
 
 #zip {

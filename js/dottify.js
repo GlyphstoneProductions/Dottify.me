@@ -14,7 +14,7 @@ Dottify.prototype.createUser = function(zipCode) {
 	}).fail(function() {
 		Dottify.alert("Something went wrong with our servers :(. " +
 		 							"Carrier pigeons have been dispatched to the " +
-		 							"developers. Try again soon!");
+		 							"developers. Try again soon! email:bugs@dottify.org");
 	});
 }
 

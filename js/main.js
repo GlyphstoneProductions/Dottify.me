@@ -140,9 +140,9 @@ function updateUser() {
 	$.ajax({
 		type: 'PUT',
 		contentType: 'application/json',
-		url: rootURL ,
+		url: rootURL + '/user',
 		dataType: "json",
-		data: formToJSON(),
+		data: userFormToJSON(currentUser),
 		success: function(data, textStatus, jqXHR){
 			alert('User updated successfully');
 		},
@@ -191,7 +191,23 @@ function renderDetails(user) {
 }
 
 //Helper function to serialize all the form fields into a JSON string
+function userFormToJSON(user) {
+	
+	return JSON.stringify({
+		"id" : user.id,
+		"uuid": user.uuid, 
+		"ver" : user.ver,
+		"thisver" : user.thisver,
+		"refuserid": $('#refuserid').val(),
+		"zipcode": $('#zipcode').val(),
+		"username": $('#username').val(),
+		"password": $('#password').val(),
+		"email": $('#password').val()
+	});
+}
+
 function formToJSON() {
+	
 	return JSON.stringify({
 		"uuid": $('#userUUID').val(), 
 		"refuserid": $('#refuserid').val(),
