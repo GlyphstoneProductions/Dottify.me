@@ -12,10 +12,19 @@
 	max-width: 800px;
 	position: relative;
 	display: block;
+	
+}
+
+#info {
+	margin: auto;
+	max-width:800px ;
+	height: 40px ;
+	position: relative ;
+	text-align: center;
 }
 
 #map {
-	width: 800px;
+	width: 800px;	
 	height: 500px;
 	display: block;
 }
