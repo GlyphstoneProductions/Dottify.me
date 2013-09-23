@@ -10,12 +10,14 @@ function Dottify() {
 	this.me.on("sessionload", this.displaySessionInfo ) ;
 	// set up listener for now
 	$("#userinfo-ribbon").click(function(){
-		 $("#userinfo-body").slideDown("slow");
-	});
-	$("#userinfo-body").click(function(){
-		 $("#userinfo-body").slideUp("slow");
-	});
+		 if( $("#userinfo-body").css('display') == "none") {
+			 $("#userinfo-body").slideDown("slow");
+		 } else {
+		 	$("#userinfo-body").slideUp("slow");
+		 }
 	
+	});
+	$("select").imagepicker() ;
 }
 
 Dottify.prototype.createUser = function(zipCode) {

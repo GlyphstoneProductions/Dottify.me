@@ -6,6 +6,7 @@
 		<link rel="stylesheet" href="css/leaflet.css" />
 		<link rel="stylesheet" href="css/responsive1.css" />
 		<link rel="stylesheet" href="js/jqueryShare/jquery.share.css" />
+		<link rel="stylesheet" href="js/image-picker-master/image-picker/image-picker.css" />
 		<!--[if lte IE 8]><link rel="stylesheet" href="../dist/leaflet.ie.css" /><![endif]-->
 <title>Dottify.me</title>
 </head>
@@ -21,20 +22,46 @@
 		</div>
 		<div id="controls">
 		<div id="userinfo" >
-			<div id="userinfo-ribbon">Click To Display User Info</div>
-			<div id="userinfo-body">This contains the user information</div>
-		</div>
-		</div>
-		<div id="center">
-			<div id="map">
-				<div id="userform">
-					<input id="zipcode" name="zipcode" type="text" placeholder="Enter your zip code" />
-					<button>Add me!</button>
-					<div>
-						<a href="#">No thanks, just show me the map</a>
-					</div>
+			<div id="userinfo-ribbon">Put Yourself On The Map <button>V</button> <button>Logout</button></div>
+			<div id="userinfo-body">
+				<div id="userinfo-form" >
+				        I am:<br/>
+				        <input id="type_trans" type="radio" name="usertype" value="1">Transgender/Transsexual/Gender non-conforming<br/>
+				        <input id="type-quest" type="radio" name="usertype" value="2">Curious about or Questioning my gender<br/>
+				        <input id="type-ally" type="radio" name="usertype" value="3">An ally or supporter of Trans* People<br/>
+						<input id="zipcode" name="zipcode" type="text" placeholder="Enter your 5-digit zip code" maxlength="5" /><br/>
+						Choose Your MeCon:<br/>
+						<select class="image-picker" >
+							<option data-img-src="images/pin001.png" value="pin001.png" >pin 1</option>
+							<option data-img-src="images/pin002.png" value="pin002.png" >pin 2</option>
+							<option data-img-src="images/pin003.png" value="pin003.png" >pin 3</option>	
+							<option data-img-src="images/pin004.png" value="pin004.png" >pin 4</option>
+							<option data-img-src="images/pin005.png" value="pin005.png" >pin 5</option>		
+							<option data-img-src="images/pin006.png" value="pin006.png" >pin 1</option>
+							<option data-img-src="images/pin007.png" value="pin007.png" >pin 2</option>
+							<option data-img-src="images/pin008.png" value="pin008.png" >pin 3</option>	
+							<option data-img-src="images/pin009.png" value="pin009.png" >pin 4</option>
+							<option data-img-src="images/pin010.png" value="pin010.png" >pin 5</option>	
+							<option data-img-src="images/pin011.png" value="pin011.png" >pin 1</option>
+							<option data-img-src="images/pin012.png" value="pin012.png" >pin 2</option>
+							<option data-img-src="images/pin013.png" value="pin013.png" >pin 3</option>	
+							<option data-img-src="images/pin014.png" value="pin014.png" >pin 4</option>
+							<option data-img-src="images/pin015.png" value="pin015.png" >pin 5</option>		
+							<option data-img-src="images/pin016.png" value="pin016.png" >pin 1</option>
+							<option data-img-src="images/pin017.png" value="pin017.png" >pin 2</option>
+							<option data-img-src="images/pin018.png" value="pin018.png" >pin 3</option>	
+							<option data-img-src="images/pin019.png" value="pin019.png" >pin 4</option>
+							<option data-img-src="images/pin020.png" value="pin020.png" >pin 5</option>					
+						</select>
+						<br/>
+						<button >Put me on the Map!</button>
+				
 				</div>
 			</div>
+			
+		</div>
+		<div id="center">
+			<div id="map"></div>
 		</div>
 
 		
@@ -56,6 +83,8 @@
 	<script src="js/zip-code-form.js"></script>
 	<script src="js/map.js"></script>
 	<script src="js/jqueryShare/jquery.share.js"></script>
+	<script src="js/image-picker-master/image-picker/image-picker.min.js"></script>
+	<script src="js/image-picker-master/image-picker/image-picker.js"></script>
 	<script src="js/sharing.js"></script>
 	<script src="js/dottify.js"></script>
 
