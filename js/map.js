@@ -19,9 +19,31 @@ var Map = function(mapDivId, users) {
 };
 
 Map.prototype.addUser = function(user) {
-	if (user.hasCoordinate()) {
-		new L.Marker(user.coordinate()).addTo(this.leafletMap);
+	
+	var customIcon = L.icon({
+	    iconUrl: 'images/' + user.data.mecon ,
+	    shadowUrl: 'images/pinshadow.png',
+
+	    iconSize:     [50, 115], // size of the icon
+	    shadowSize:   [54, 38], // size of the shadow
+	    iconAnchor:   [22, 115], // point of the icon which will correspond to marker's location
+	    shadowAnchor: [-5, 42],  // the same for the shadow
+	    popupAnchor:  [5, -108] // point from which the popup should open relative to the iconAnchor
+	});
+	
+	if( user.isMe ) {
+		if (user.hasCoordinate()) {
+			new L.Marker( user.coordinate(), {icon: customIcon}).addTo(this.leafletMap).bindPopup("<b>I't's Me!</b><br />" + user.data.zipcode ) ;
+			this.zoomTo( user.coordinate() ) ;
+		} else {
+			// TODO: Alert user that they do not have a coordinate and should input zip or choose alternative zip - or report zip missmatch 
+		}
+	} else {
+		if (user.hasCoordinate()) {
+			new L.Marker( user.coordinate()).addTo(this.leafletMap);
+		}
 	}
+
 }
 
 Map.prototype.zoomTo = function(coordinate) {

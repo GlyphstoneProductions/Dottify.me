@@ -4,6 +4,7 @@ require_once 'Slim/Slim.php';
 		
 require_once "DottifyManager.php" ;
 
+
 use Slim\Slim ;
 
 \Slim\Slim::registerAutoloader();
@@ -23,6 +24,7 @@ $app->delete( '/user/:uuid', 'deleteuser' ) ;
 $app->get( '/zipcode', 'listzipcodes') ;
 $app->get( '/zipcode/:zip', 'getzipinfo') ;
 $app->get( '/ntdsuser', 'listNTDSUsers') ;
+$app->get( '/usersession/:uuid', 'getUserSessionInfo') ;
 
 // --------------------------------------
 $app->run();
@@ -153,6 +155,16 @@ function listNTDSUsers() {
 	$out = $mgr->listNTDSUsers( $state, $offset, $limit ) ;
 	send( $out, $start) ;	
 	
+	
+}
+
+function getUserSessionInfo( $uuid ) {
+
+	$start = microtime() ;
+	$mgr = new DottifyManager() ;
+	$info = $mgr->getUserSessionInfo( $uuid ) ;
+	
+	send( $info, $start ) ;
 	
 }
 

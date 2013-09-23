@@ -3,6 +3,7 @@ $(function() {
 	function isZipCodeValid(zipCode) {
 		return zipCode.match(/^\d{5}$/)
 	};
+	
 	$.fn.zipCodeForm = function(app) {
 		var $container = $(this);
 		var $field = $container.find('input');

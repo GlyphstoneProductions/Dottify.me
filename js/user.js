@@ -1,5 +1,6 @@
 function User(data) {
 	this.data = data;
+	this.isMe = false ;
 }
 
 User.prototype.coordinate = function() {
@@ -8,8 +9,18 @@ User.prototype.coordinate = function() {
 		lng: this.data.longitude
 	}
 }
+
 User.prototype.hasCoordinate = function() {
 	return this.data.latitude && this.data.longitude;
+}
+
+User.prototype.isMe = function() {
+	return this.isMe ;
+}
+
+User.prototype.setIsMe = function( isMe ) {
+	this.isMe = isMe ;
+	
 }
 
 User.createFromZipCode = function(zipCode) {

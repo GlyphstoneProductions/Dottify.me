@@ -10,6 +10,7 @@ require_once "User.php" ;
 require_once "Validation.php" ;
 require_once "Zipcode.php" ;
 require_once "UserCache.php" ;
+require_once "UserSessionInfo.php" ;
 
 class DottifyManager {
 	
@@ -18,7 +19,7 @@ class DottifyManager {
 		
 		$sql = "select u.id, u.uuid, u.refid, u.ver, u.thisver, u.username, u.created, u.modified, u.refuser, u.refuserid, u.email, u.zipcode, " ;
 		$sql .= " u.countrycode, u.usertype, u.userstatus, u.mecon, u.userip, c.latitude, c.longitude " ;
-		$sql .= "FROM user u join usercache c on u.id = c.id WHERE u.ver = 0 ORDER BY u.created";
+		$sql .= "FROM user u left outer join usercache c on u.id = c.id WHERE u.ver = 0 ORDER BY u.created";
 		try {
 			$db = $this->getConnection();
 			$stmt = $db->query($sql);
@@ -38,7 +39,7 @@ class DottifyManager {
 
 		$sql = "select u.id, u.uuid, u.refid, u.ver, u.thisver, u.username, u.created, u.modified, u.refuser, u.refuserid, u.email, u.zipcode, " ;
 		$sql .= " u.countrycode, u.usertype, u.userstatus, u.mecon, u.userip, c.latitude, c.longitude " ;
-		$sql .= "FROM user u join usercache c on u.id = c.id WHERE u.uuid = :uuid AND u.ver = 0";
+		$sql .= "FROM user u left outer join usercache c on u.id = c.id WHERE u.uuid = :uuid AND u.ver = 0";
 		
 		//$sql = "SELECT * FROM user WHERE uuid=:uuid and ver = 0";
 		try {
@@ -450,6 +451,51 @@ class DottifyManager {
 			return array( "Error" => array( "text" => $message) ) ;
 		}
 	}
+	
+	public function getUserSessionInfo($uuid ) {
+
+		if( $uuid === '*' ) {
+			$uuid = null ;
+		}
+		$now = date('Y-m-d H:i:s');
+		$sessionUuid = $this->getSessionVar("uuid", null) ;
+		$info = new UserSessionInfo() ;
+		$info->passedUuid = $uuid ;
+		$info->sessionUuid = $sessionUuid ;
+		$info->thisVisitStart = $now ;
+		$info->lastVisit = $this->getSessionVar( "lastvisit",null) ;
+		$info->isloggedIn = $this->getSessionVar( "islogged", false ) ;
+		$info->lastIp = $this->getSessionVar( "lastip", "" ) ;
+		$info->thisIp = $_SERVER['REMOTE_ADDR'] ;
+		$this->setSessionVar( 'lastvisit', $now) ;
+		$this->setSessionVar( 'lastip', $info->thisIp) ;
+		
+		if( empty( $info->sessionUuid )) {
+			$info->sessionUuid = $uuid ;
+		} else {
+			if( !empty( $uuid )) {
+				$info->sessionUuid = $uuid ;
+			} 
+		}
+		$this->setSessionVar( 'uuid', $info->sessionUuid ) ;
+		$info->user = $this->getUserByUuid( $info->sessionUuid ) ;
+
+		return $info ;
+	}
+	
+
+	protected function getSessionVar( $varname, $defval ) {
+		if( isset($_SESSION[$varname] )) {
+			return $_SESSION[$varname] ;
+		} else {
+			return $defval ;
+		}
+	}
+	
+	protected function setSessionVar( $varname, $value ) {
+		$_SESSION[$varname] = $value ;
+	}
+	
 	
 	protected function getVisits() {
 

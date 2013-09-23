@@ -1,9 +1,21 @@
 function Dottify() {
+
 	this.users = new UsersCollection();
+	$('#userform').zipCodeForm(this);
+	this.me = this.loadUserSessionInfo(this.users) ;
 	this.map = new Map('map', this.users);
 	this.users.loadAll();
-	$('#zip').zipCodeForm(this);
+
 	initShare('share');
+	this.me.on("sessionload", this.displaySessionInfo ) ;
+	// set up listener for now
+	$("#userinfo-ribbon").click(function(){
+		 $("#userinfo-body").slideDown("slow");
+	});
+	$("#userinfo-body").click(function(){
+		 $("#userinfo-body").slideUp("slow");
+	});
+	
 }
 
 Dottify.prototype.createUser = function(zipCode) {
@@ -17,6 +29,36 @@ Dottify.prototype.createUser = function(zipCode) {
 		 							"developers. Try again soon! email:bugs@dottify.org");
 	});
 }
+
+
+Dottify.prototype.loadUserSessionInfo = function( users ) {
+
+	var uuid = this.getUrlParam( "uuid" ) ;
+	var uinfo = new UserSessionInfo() ;
+	uinfo.load( uuid, users ) ;
+	return uinfo ;
+
+} 
+
+Dottify.prototype.displaySessionInfo = function(event, data) {
+	var last = data.lastVisit ;
+	console.log( 'async info: ' + data.user.data.zipcode + ' on ' + last ) ;
+	if( data.user.data.uuid != null ) {
+		$('#userform').hide() ;
+	}
+	this.me = data ;
+	
+}
+
+
+Dottify.prototype.getUrlParam = function( paramName ) {
+	var results = new RegExp('[\\?&]' + paramName + '=([^&#]*)').exec(window.location.href);
+	if( results != null ) {
+		return results[1] ;
+	}
+	return null ;
+}
+
 
 Dottify.alert = function(text) {
 	// We're wrapping `alert` so if we want to use a modal
