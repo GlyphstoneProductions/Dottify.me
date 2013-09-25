@@ -516,7 +516,7 @@ class DottifyManager {
 	protected function getConnection() {
 	
 		$dbinfo = getenv("DOTTIFY_DB") ;
-		echo "dbinfo: $dbinfo\n" ;
+		// echo "dbinfo: $dbinfo\n" ;
 		$connect = explode( ':', $dbinfo) ;
 		$dbhost = $connect[0] ;
 		$dbuser = $connect[1] ;
