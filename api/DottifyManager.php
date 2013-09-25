@@ -515,10 +515,14 @@ class DottifyManager {
 	
 	protected function getConnection() {
 	
-		$dbhost="dottyfydb.ch4won8ycaxv.us-west-2.rds.amazonaws.com";
-		$dbuser="sysadmin";
-		$dbpass="Maxf1eld";
-		$dbname="dott1";
+		$dbinfo = getenv("DOTTIFY_DB") ;
+		echo "dbinfo: $dbinfo\n" ;
+		$connect = explode( ':', $dbinfo) ;
+		$dbhost = $connect[0] ;
+		$dbuser = $connect[1] ;
+		$dbpass = $connect[2] ;
+		$dbname = $connect[3] ;
+		
 		$dbh = new PDO("mysql:host=$dbhost;dbname=$dbname", $dbuser, $dbpass);
 		$dbh->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 		return $dbh;
