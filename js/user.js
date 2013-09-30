@@ -7,7 +7,6 @@ function User(data) {
 		"SUSPENDED" : { id: 2, name: "suspended", desc: "has been suspended for cause" }
 	} ;
 	
-	registered, validate, researcher, adminstrator
 	this.Type = {
 		"REGISTERED" : { id: 0, name: "registered", desc: "unvalidated user"} ,
 		"VALIDATED" :{ id: 1, name: "validated", desc: "validated user"} ,
