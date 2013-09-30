@@ -16,6 +16,7 @@ UserSessionInfo.prototype.load = function( uuid, users) {
 	}
 	this.passedUuid = uuid ;
 	var info = this ;
+	
 	var url = 'api/usersession/' ;
 	if( uuid != null ) {
 		url += uuid ;
@@ -30,8 +31,8 @@ UserSessionInfo.prototype.load = function( uuid, users) {
 		info.data = data ;
 
 		user.setIsMe(true) ;
-		console.log( 'user refid: ' + user.refid) ;		
-		console.log( 'user uuid: ' + user.uuid ) ;
+		console.log( 'user refid: ' + user.data.refid) ;		
+		console.log( 'user uuid: ' + user.data.uuid ) ;
 
 		users.add(user, true ) ; // do overwrite an existing user in collection a
 		info.trigger("sessionload", data);	

@@ -1,6 +1,24 @@
 function User(data) {
 	this.data = data;
 	this.isMe = false ;
+	this.Status = {
+		"UNCLAIMED" : { id: 0, name: "unclaimed", desc: "user has not claimed dott" },
+		"CLAIMED" : { id: 1, name: "claimed", desc: "is a claimed dott" },
+		"SUSPENDED" : { id: 2, name: "suspended", desc: "has been suspended for cause" }
+	} ;
+	
+	registered, validate, researcher, adminstrator
+	this.Type = {
+		"REGISTERED" : { id: 0, name: "registered", desc: "unvalidated user"} ,
+		"VALIDATED" :{ id: 1, name: "validated", desc: "validated user"} ,
+		"RESEARCHER" :{ id: 2, name: "researcher", desc: "research user"} ,
+		"ADMIN" :{ id: 10, name: "administrator", desc: "administrative user"} 
+	} ;
+	this.Class = {
+		"TRANS" : { id: 0, name: "transgender", desc: "trans* or gender variant user"} ,
+		"QUESTIONING" :{ id: 1, name: "questioning", desc: "gender questioning user"} ,
+		"ALLY" :{ id: 2, name: "ally", desc: "ally user"} 
+	} ;
 }
 
 User.prototype.coordinate = function() {
