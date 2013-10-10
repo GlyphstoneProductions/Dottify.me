@@ -64,7 +64,8 @@ LoginForm.prototype.initForm = function(user) {
 			if( uuid ) {
 				loginform.app.userForm.reloadWindow(uuid);
 			} else {
-				loginform.app.alert("Invalid username and/or password") ;
+				Dottifyme.alert("Invalid username and/or password") ;
+				
 			}
 		} );
 		
