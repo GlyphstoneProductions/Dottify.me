@@ -41,7 +41,7 @@ Dottifyme.prototype.initShare = function ( shareUrl) {
 	var divId = "share" ;
 	$('#' + divId).empty() ;	// in case this a reload
     $('#' + divId).share({
-        networks: ['facebook','twitter','pinterest','googleplus','linkedin','tumblr','in1','email'],
+        networks: ['facebook','twitter','email','pinterest','googleplus','linkedin'],
         urlToShare: shareUrl
     });
 }

@@ -227,9 +227,16 @@ body {
 	font-family: Verdana, Geneva, sans-serif ;
 }
 
+img {
+    width: inherit;  
+ 	 max-width: 100%; 
+  	height: auto;   
+}
+
 #header {
 	margin: auto;
-	width: 700px;
+	max-width: 700px;
+	width: 50%;
 	display: block;
 }
 
@@ -260,9 +267,10 @@ body {
 
 #share {
 	display: block;
-	width: 450px;
+	max-width: 300px;
 	min-height: 45px;
 	margin: auto;
+	align: center;
 }
 
 #video {
