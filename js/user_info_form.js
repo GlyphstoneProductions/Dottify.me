@@ -33,6 +33,7 @@ UserInfoForm.prototype.showForm = function( userform ) {
  */
 UserInfoForm.prototype.initForm = function(user) {
 	
+	// console.log( "init form: " + window.location.hostname ) ;
 	var userform = this ;	
 	$("#usergreeting").click( function() {
 		userform.showForm(userform);
@@ -474,9 +475,12 @@ UserInfoForm.prototype.reloadWindow = function( uuid ) {
 	if (url.indexOf("?")>-1){
 		url = url.substr(0,url.indexOf("?"));
 	}
-	// fix below before deployment or 
-	// TODO: create logic that works on both localhost and dottify.me
+
 	var setcookie = "http://dottify.me/setcookie.php" ;
+	if(  window.location.hostname == 'localhost') {
+		setcookie = "http://localhost/dottify/setcookie.php" ;
+	} 
+
 	
 	window.location.replace( setcookie + "?uuid=" + uuid + "&redir=" + url ) ;
 	

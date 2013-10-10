@@ -21,6 +21,10 @@
 		
 }
 
+#subtitle {
+	text-align: center;
+}
+
 #info {
 	margin: auto;
 	max-width:800px ;
@@ -56,13 +60,19 @@
 	width: 25px;
 	height: 50px ;
 	margin: 0, 0, -30px, 0 ;
+	cursor: pointer;
 }
 
 #usergreeting {
 	display:inline ;
 	margin: 0 5px 0 5px ;
 	vertical-align: top;	
+	cursor: pointer;
 	
+}
+
+#expandform {
+	cursor: pointer;
 }
 
 button#logout {

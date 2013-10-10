@@ -35,8 +35,9 @@ LoginForm.prototype.initForm = function(user) {
         </div> \
 		<div class="formrow"> \
 		    <button id="dologin">Login</button>&nbsp;&nbsp;<button id="cancellogin">Cancel Login</button> \
-        </div> \
-		<div class="centertext">= OR =<br/> \
+        </div> \ ' ;
+	/*
+    html += '<div class="centertext">= OR =<br/> \
 		If you only have registered your email address<br/> \
 		Email your private link to yourself here. </div>\
 		<div class="formrow"> \
@@ -44,11 +45,12 @@ LoginForm.prototype.initForm = function(user) {
 		</div> \
 		<div class="formrow"> \
 	    	<button id="sendlink">Email Link</button> &nbsp;&nbsp;<button id="cancelsend">Close</button> \
-		</div> \
-		<div class="centertext">= OR =<br/>\
-		If none of the above applies and you have not saved <br/> \
-		your private link...<br/> \
-		Add yourself again and be sure to save your link and/or<br/> \
+		</div> ' ;
+		*/
+    html += '<div class="centertext">= OR =<br/>\
+		If you have not created an account or you have not saved <br/> \
+		your private link then <a id="addlink" href="#">add yourself again</a> <br/>\
+    	and be sure to save your link and/or<br/> \
 		register a username/password and email.<br/> \
 		email <a href="mailto:admin@dottifyme.org">admin@dottifyme.org</a> for support.</div>' ;
 	
@@ -59,11 +61,16 @@ LoginForm.prototype.initForm = function(user) {
 	    var password = $("#login-password").val();
 		User.login(username,password).done( function(uuid ) {
 			console.log( "logged in:" + uuid ) ;
-			loginform.app.userForm.reloadWindow(uuid);
+			if( uuid ) {
+				loginform.app.userForm.reloadWindow(uuid);
+			} else {
+				loginform.app.alert("Invalid username and/or password") ;
+			}
 		} );
 		
 		
 	}) ;
+	
 	
 	$("button#sendlink").click( function() {
 	    var email = $("#sendlink-email").val();
@@ -72,6 +79,17 @@ LoginForm.prototype.initForm = function(user) {
 			
 		} );
 	});
+	
+	$("#loginpanel").keyup( function(event){
+		if( event.which == 13 ) {
+			$("button#dologin").trigger("click") ;
+		}
+	}) ;
+	
+	$("a#addlink").click( function(){
+		loginform.collapse();
+		loginform.app.userForm.expand();
+	}) ;
 	
 	$("button#cancellogin").click( this.collapse) ;
 
