@@ -71,6 +71,24 @@ button#logout {
 	margin: 0 5px 0 10px ;
 }
 
+button#login {
+
+
+}
+
+button#expand {
+	vertical-align: top;	
+	margin: 0 5px 0 10px ;
+}
+
+.ribbonbutton {
+	display: inline-block;
+	vertical-align: top;	
+	width: 19px;
+	height: 19px;
+	margin: 0 5px 0 10px ;
+}
+
 #userinfo-body
 {
 	position:absolute ;
@@ -79,7 +97,7 @@ button#logout {
 	z-index: 1001;
 	padding:5px;
 	width: 100%;
-	height: 330px ;
+	height: 500px ;
 	background-color:#e5eeff;
 	border:solid 1px #c3c3c3;
 	display:none;
@@ -87,11 +105,35 @@ button#logout {
 
 }
 
+#logindiv {
+	display: inline-block ;
+	vertical-align: top;	
+	margin: 0 5px 0 10px ;
+}
+
+#loginpanel
+{
+	position:absolute ;
+	left: 50%;
+	margin-left: -250px;
+	top: 35px ;
+	z-index: 1002;
+	padding:10px;
+	width: 500px;
+	height: 400px ;
+	background-color:#e5eeff;
+	border:solid 1px #c3c3c3;
+	display:none;
+	opacity:0.95;
+
+}
+
 #imagepicker_scroll {
-	width: 320px;
+	width: 100%;
 	height:140px;
 	overflow-x: scroll;
 	overflow-y: hidden;
+	margin: 5px;
 }
 
 #imagepicker_inner {
@@ -101,10 +143,68 @@ button#logout {
 
 #userinfo-form {
 	font-size:0.875em;
-	width: 400px;
+	width: 95%;
+	max-width: 600px;
+	height: 500px ;
 	margin: auto ;
 	
 }
+
+.accordpanel {
+	height: 325px ;
+}
+
+#sharenow { }
+
+.formrow{
+	border:solid 1px #c3c3c3;
+	width:100%;
+}
+
+.formlabel {
+	display: inline-block;
+	width: 200px;
+	margin: 0 0 0 10px;
+}
+.formctl {
+	display: inline-block;
+}
+
+.formctl>* {
+    vertical-align:middle;
+}
+
+.formctl>input {
+	width: 250px;
+	vertical-align:middle;
+}
+
+.formctl>select {
+	margin: 5px;
+}
+
+.tablerow{
+	border:solid 1px #c3c3c3;
+	width:100%;
+}
+.tablerow:nth-child(even)		{ background-color:#e0e0ff; }
+
+.formheader {
+	margin: 0 0 0 10px ;
+}
+
+.formcol {
+	display: inline-block;
+	text-align: center;
+	vertical-align: top;
+	margin: 2px;
+	width: 15%;
+}
+
+.centertext {
+	text-align: center;
+}
+
 
 #map {
 	width: 100%;	
@@ -134,27 +234,24 @@ body {
 	
 }
 
-#userform {
-	-moz-border-radius: 10px;
-	-webkit-border-radius: 10px;
-	-khtml-border-radius: 10px;
-	border-radius: 10px;
-	width: 240px;
-	background-color: white;
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	margin-left: -120px;
-	padding: 10px;
-	font-size: 0.8em;
-	color: #7D2E19;
-	z-index: 99;
-	display: block;
+.erricon {
+	height: 20px;
+	width: 20px;
+	horizontal-align: bottom;
+	display:none;
+}
+
+.goodicon {
+	height: 20px;
+	width: 20px;
+	horizontal-align: bottom;
+	display:none;
 }
 
 #share {
 	display: block;
 	width: 450px;
+	min-height: 45px;
 	margin: auto;
 }
 

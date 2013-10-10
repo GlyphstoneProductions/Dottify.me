@@ -7,6 +7,7 @@
 		<link rel="stylesheet" href="css/responsive1.css" />
 		<link rel="stylesheet" href="js/jqueryShare/jquery.share.css" />
 		<link rel="stylesheet" href="js/image-picker-master/image-picker/image-picker.css" />
+	    <link href="js/jqueryui/css/redmond/jquery-ui-1.10.3.custom.css" rel="stylesheet">
 		<!--[if lte IE 8]><link rel="stylesheet" href="../dist/leaflet.ie.css" /><![endif]-->
 <title>Dottify.me</title>
 </head>
@@ -29,9 +30,15 @@ ga('send', 'pageview');
 			<div id="share">
 			</div>
 		</div>
-		<div id="controls">
+		<div id="stats">
+	   </div>
 		<div id="userinfo" >
-			<div id="userinfo-ribbon"><div id="mecon"></div><div id="usergreeting">Put Yourself On The Map</div><button id="logout">Logout</button></div>
+			<div id="userinfo-ribbon">
+			    <div id="mecon" title="Zoom to me!"></div>
+			    <div id="usergreeting">Put Yourself On The Map&nbsp;</div>
+			    <div id="expandform" class="ui-state-default ui-corner-all ribbonbutton" title="Expand User Form"><span class="ui-icon ui-icon-arrowthickstop-1-s"></span></div>
+			    <button id="logout">Logout</button>
+			</div>
 			<div id="userinfo-body">
 				<div id="userinfo-form" >
 
@@ -50,6 +57,7 @@ ga('send', 'pageview');
 		Report bugs to <a href="mailto:bugs@dottify.org">bugs@dottify.org</a>.<br/>
 		Blogs and information at <a href="http://dottify.org">dottify.org</a>
 		</div>
+	
 	</div>
 
 	<script src="script/leaflet.js"></script>
@@ -64,7 +72,7 @@ ga('send', 'pageview');
 	<script src="js/jqueryShare/jquery.share.js"></script>
 	<script src="js/image-picker-master/image-picker/image-picker.min.js"></script>
 	<script src="js/image-picker-master/image-picker/image-picker.js"></script>
-	<script src="js/sharing.js"></script>
+	<script src="js/jqueryui/js/jquery-ui-1.10.3.custom.js"></script>
 	<script src="js/dottifyme.js"></script>
 
 </body>

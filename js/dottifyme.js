@@ -1,17 +1,52 @@
 function Dottifyme() {
 
-	this.users = new UsersCollection();
-
-	this.me = this.loadUserSessionInfo(this.users) ;
-	this.map = new Map('map', this.users);
-	this.users.loadAll();
-	this.userForm = new UserInfoForm( this ) ;
-	
-	initShare('share');
+	this.initialize(true);
 
 }
 
-Dottifyme.prototype.createUser = function(zipCode) {
+Dottifyme.prototype.initialize = function(first) {
+	
+	this.users = new UsersCollection();
+	var app = this ;
+	this.me = this.loadUserSessionInfo(this.users) ;
+	this.me.on("sessionload", function( event, data ) {
+		app.onSessionLoad( event, data, app) ;
+	} ) ;
+
+	this.map = new Map('map', this.users);
+	this.users.loadAll();
+	this.userForm = new UserInfoForm( this ) ;
+	this.loginForm = new LoginForm( this ) ;
+
+}
+
+Dottifyme.prototype.onSessionLoad = function( event, data, app ) {
+	/*
+	var url = window.location.href ;
+	if (url.indexOf("?")>-1){
+		url = url.substr(0,url.indexOf("?"));
+	} */
+	var url = "http://dottify.me" ;
+	
+	var user = data.user ;
+	if( user.data != null ) {
+		if( user.data.refid != null ) {
+			url += "?refid=" + user.data.refid ;
+		}
+	}
+	app.initShare( url ) ;
+}
+
+Dottifyme.prototype.initShare = function ( shareUrl) {
+	var divId = "share" ;
+	$('#' + divId).empty() ;	// in case this a reload
+    $('#' + divId).share({
+        networks: ['facebook','twitter','pinterest','googleplus','linkedin','tumblr','in1','email'],
+        urlToShare: shareUrl
+    });
+}
+
+Dottifyme.prototype.createUserFromZip = function(zipCode) {
 	var dottify = this;
 	return User.createFromZipCode(zipCode).done(function(user) {
 		dottify.users.add(user)
@@ -23,12 +58,36 @@ Dottifyme.prototype.createUser = function(zipCode) {
 	});
 }
 
+Dottifyme.prototype.createUser = function(userin) {
+	var dottify = this;
+	return User.create(userin).done(function(user) {
+		dottify.users.add(user)
+		dottify.map.zoomTo(user.coordinate(), dottify.users);
+	}).fail(function() {
+		Dottify.alert("Something went wrong with our servers :(. " +
+		 							"Carrier pigeons have been dispatched to the " +
+		 							"developers. Try again soon! email:bugs@dottify.org");
+	});
+}
+
+/*
+ * deprecated - moved to user form logout.
+ * and we redirect through setcookie.php to clear cookies
+Dottifyme.prototype.logout = function() {
+	this.me = this.me.logout() ;
+	this.map.removeMyMarker();
+	this.map.defaultZoom() ;
+
+}
+*/
+
 
 Dottifyme.prototype.loadUserSessionInfo = function( users ) {
 
 	var uuid = this.getUrlParam( "uuid" ) ;
+	var refid = this.getUrlParam("refid") ;
 	var uinfo = new UserSessionInfo() ;
-	uinfo.load( uuid, users ) ;
+	uinfo.load( uuid, refid, users ) ;
 	return uinfo ;
 
 } 

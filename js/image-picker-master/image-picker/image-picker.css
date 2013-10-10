@@ -15,10 +15,10 @@ ul.thumbnails.image_picker_selector {
   ul.thumbnails.image_picker_selector li.group_title {
     float: none; }
   ul.thumbnails.image_picker_selector li {
-    margin: 0px 12px 12px 0px;
+    margin: 0px 3px 3px 0px;
     float: left; }
     ul.thumbnails.image_picker_selector li .thumbnail {
-      padding: 6px;
+      padding: 3px;
       border: 1px solid #dddddd; }
     ul.thumbnails.image_picker_selector li .thumbnail.selected {
       background: #0088cc; }

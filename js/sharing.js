@@ -1,5 +1,6 @@
-function initShare(divId) {
+function initShare(divId, shareUrl) {
+	$('#' + divId).empty() ;	// in case this a reload
     $('#' + divId).share({
-        networks: ['facebook','pinterest','googleplus','twitter','linkedin','tumblr','in1','email','stumbleupon','digg']
+        networks: ['facebook','twitter','pinterest','googleplus','linkedin','tumblr','in1','email']
     });
 }

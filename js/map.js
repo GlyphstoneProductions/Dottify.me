@@ -5,6 +5,8 @@ var STARTING_ZOOM = 3;
 
 
 var Map = function(mapDivId, users) {
+	
+	this.mapDivId = mapDivId;
 	this.attribText = 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://cloudmade.com">CloudMade</a>';
 	this.tileUrl = 'http://{s}.tile.osm.org/{z}/{x}/{y}.png';
 
@@ -16,7 +18,18 @@ var Map = function(mapDivId, users) {
 	users.on('added', function(e, user) {
 		map.addUser(user);
 	});
+	
+	this.myMarker = null ;
 };
+
+Map.prototype.removeMyMarker = function() {
+	this.leafletMap.removeLayer( this.myMarker) ;
+	this.myMarker = null ;
+}
+
+Map.prototype.defaultZoom = function() {
+	this.leafletMap = this.leafletMap.setView([STARTING_LAT, STARTING_LONG], STARTING_ZOOM);
+}
 
 Map.prototype.addUser = function(user) {
 	
@@ -33,7 +46,8 @@ Map.prototype.addUser = function(user) {
 	
 	if( user.isMe ) {
 		if (user.hasCoordinate()) {
-			new L.Marker( user.coordinate(), {icon: customIcon}).addTo(this.leafletMap).bindPopup("<b>I't's Me!</b><br />" + user.data.zipcode ) ;
+			this.myMarker = new L.Marker( user.coordinate(), {icon: customIcon}) ; 
+			this.myMarker.addTo(this.leafletMap).bindPopup("<b>I't's Me!</b><br />" + user.data.zipcode ) ;
 			this.zoomTo( user.coordinate() ) ;
 		} else {
 			// TODO: Alert user that they do not have a coordinate and should input zip or choose alternative zip - or report zip missmatch 

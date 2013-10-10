@@ -14,9 +14,15 @@ $app = new \Slim\Slim();
 // -------------------------------------
 // Routes
 $app->get( '/user', 'listusers' ) ;
+$app->get( '/user/login/:username/:password', 'loginuser') ;
+$app->get( '/user/byemail','getuserbyemail');
+$app->get( '/user/basesurvey/:id/:ver', 'getbasesurvey' ) ;
+$app->post( '/user/basesurvey', 'addbasesurvey' ) ;
 $app->get( '/user/zip/:zip', 'listusersinzip' ) ;
 $app->post( '/user/validate', 'validateuser' ) ;
 $app->get( '/user/validate/:uuid', 'revalidateuser' ) ;
+$app->get( '/user/sendlink', 'emailUserLink') ;
+$app->post( '/user/sendlink', 'emailUserLink') ;
 $app->get( '/user/:uuid', 'getuser' ) ;
 $app->post( '/user', 'createuser' ) ;
 $app->put( '/user', 'updateuser' ) ;
@@ -24,7 +30,9 @@ $app->delete( '/user/:uuid', 'deleteuser' ) ;
 $app->get( '/zipcode', 'listzipcodes') ;
 $app->get( '/zipcode/:zip', 'getzipinfo') ;
 $app->get( '/ntdsuser', 'listNTDSUsers') ;
+$app->get( '/usersession/logout', 'logout' ) ;
 $app->get( '/usersession/:uuid', 'getUserSessionInfo') ;
+
 
 // --------------------------------------
 $app->run();
@@ -42,15 +50,36 @@ function listusers() {
 function getuser($uuid) {
 	$start = microtime() ;
 	$mgr = new DottifyManager() ;
+
 	send( $mgr->getUserByUuid($uuid) , $start) ;
+}
+
+function getuserbyemail() {
+	$start = microtime() ;
+	$request = Slim::getInstance()->request();
+	$mgr = new DottifyManager() ;
+	$email = $request->params("email") ;
+	$magic = $request->params("magic") ;
+	if( $magic == "__MAGICCOOKIE__") {
+		send( $mgr->getUserByEmail($email) , $start) ;
+	}
+}
+
+function loginuser($username, $password) {
+	$start = microtime() ;
+	$mgr = new DottifyManager() ;
+
+	send( $mgr->loginUser($username, $password) , $start) ;
 }
 
 function createuser() {
 	$start = microtime() ;
 	$request = Slim::getInstance()->request();
 	$user = json_decode($request->getBody());
+	$adopt = $request->params("adopt") ;
+	$adopt = true ;
 	$mgr = new DottifyManager() ;
-	$userout = $mgr->createUser( $user ) ;
+	$userout = $mgr->createUser( $user, $adopt ) ;
 	send( $userout, $start) ;
 }
 
@@ -106,6 +135,22 @@ function deleteuser($uuid) {
 	} catch(PDOException $e) {
 		echo '{"error":{"text":'. $e->getMessage() .'}}';
 	}
+}
+
+function addbasesurvey() {
+	$start = microtime() ;
+	$request = Slim::getInstance()->request();
+	$survey = json_decode($request->getBody());
+	$mgr = new DottifyManager() ;
+	$surveyout = $mgr->addBaseSurvey( $survey ) ;
+	send( $surveyout, $start) ;
+}
+
+function getbasesurvey($id, $ver) {
+	$start = microtime() ;
+	$mgr = new DottifyManager() ;
+
+	send( $mgr->getBaseSurvey($id, $ver), $start) ;
 }
 
 function listusersinzip($zipcode) {
@@ -166,6 +211,26 @@ function getUserSessionInfo( $uuid ) {
 	
 	send( $info, $start ) ;
 	
+}
+
+function logout(  ) {
+
+	$start = microtime() ;
+	$mgr = new DottifyManager() ;
+	$info = $mgr->logout( ) ;
+
+	send( $info, $start ) ;
+
+}
+
+function emailUserLink(  ) {
+	$start = microtime() ;
+	$mgr = new DottifyManager() ;
+	$request = Slim::getInstance()->request();
+	$email = $request->get( "email" ) ;
+	$info = $mgr->emailUserLink( $email ) ;
+	
+	send( $info, $start ) ;
 }
 
 // --------------------------------------------------------------
