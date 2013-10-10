@@ -476,7 +476,7 @@ UserInfoForm.prototype.reloadWindow = function( uuid ) {
 	}
 	// fix below before deployment or 
 	// TODO: create logic that works on both localhost and dottify.me
-	var setcookie = "http://localhost/dottify/setcookie.php" ;
+	var setcookie = "http://dottify.me/setcookie.php" ;
 	
 	window.location.replace( setcookie + "?uuid=" + uuid + "&redir=" + url ) ;
 	
