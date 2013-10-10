@@ -32,6 +32,7 @@ $app->get( '/zipcode/:zip', 'getzipinfo') ;
 $app->get( '/ntdsuser', 'listNTDSUsers') ;
 $app->get( '/usersession/logout', 'logout' ) ;
 $app->get( '/usersession/:uuid', 'getUserSessionInfo') ;
+$app->get( '/netinfluencers', 'getNetInfluencers');
 
 
 // --------------------------------------
@@ -221,6 +222,14 @@ function logout(  ) {
 
 	send( $info, $start ) ;
 
+}
+
+function getNetInfluencers() {
+	$start = microtime() ;
+	$mgr = new DottifyManager() ;
+	$info = $mgr->getInfluencers( ) ;
+	
+	send( $info, $start ) ;	
 }
 
 function emailUserLink(  ) {

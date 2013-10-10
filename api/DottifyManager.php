@@ -34,6 +34,7 @@ class DottifyManager {
 			);
 		}
 	}
+	
 	public function getUserByUuid($uuid) {
 		$sql = "select u.id, u.uuid, u.refid, u.ver, u.thisver, u.username, u.created, u.modified, u.refuser, u.refuserid, u.email, u.zipcode, ";
 		$sql .= " u.countrycode, u.usertype, u.userstatus, u.userclass, u.mecon, u.userip, u.staylogged, c.latitude, c.longitude ";
@@ -46,8 +47,12 @@ class DottifyManager {
 			$stmt->bindParam ( "uuid", $uuid );
 			$stmt->execute ();
 			$user = $stmt->fetchObject ( "User" );
-			$visits = $this->getVisits ();
-			$user->visits = $visits;
+			//$visits = $this->getVisits ();
+			// $user->visits = $visits;
+			$influence = $this->getMyInfluence( $uuid, 1);
+			$user->refcount = $influence["refcount"];
+			$user->refrank = $influence["rank"] ;
+			$user->numOpenQuestions = $this->getNumOpenQuestions( $uuid );
 			$user->password = ""; // blank for security
 			$db = null;
 			return $user;
@@ -59,6 +64,60 @@ class DottifyManager {
 					) 
 			);
 		}
+	}
+	
+	public function getMyInfluence( $uuid, $depth ) {
+		$influencers = $this->getInfluencers() ;
+		$refcount = 0 ;
+		$rank = null ;
+		$n = 1;
+		foreach( $influencers as $infl ) {
+			if( $uuid == $infl->uuid ) {
+				$refcount = $infl->refcount ;
+				$rank = $n;
+				break;
+			}
+			$n++ ;
+		}
+		$result = array( "refcount" => $refcount, "rank" => $rank) ;
+		return $result ;
+	}
+	
+	public function getNumOpenQuestions( $uuid ) {
+		$opencount = 0 ;
+		$survey = $this->getBaseSurveyByUuid($uuid);
+		
+		if( $survey ) {
+			$fields = array( "age", "income", "race", "assignedgender", "primgenderid", "genderdesc", 
+					"gid10", "gid20", "gid30", "gid40", "gid50", "gid60", "gid70", "gid80", "gid90", "gid100",
+					"gid110", "gid120", "gid120", "gid140", "gid150", "gid160"
+			 ) ;
+			foreach( $fields as $field ) {
+				if( !isset( $survey->$field )) $opencount++ ;
+			}
+		} else {
+			$opencount = -1 ;
+		}
+		return $opencount ;
+	}
+	
+	public function getInfluencers() {
+		
+		$sql = "SELECT u.uuid, u.id, u.created, u.username, u.zipcode, count(*) as 'refcount' " .
+		    "from user u join user ru on ru.refuser = u.id and ru.ver = 0 " .
+		    "where u.ver = 0 " .
+		    "group by u.uuid	order by count(*) desc ";
+
+		try {
+			$db = $this->getConnection ();
+			$stmt = $db->query ( $sql );
+			$refs = $stmt->fetchAll ( PDO::FETCH_OBJ );
+			$db = null;
+			return $refs ;
+		} catch ( PDOException $e ) {
+			return null ;
+		}
+		
 	}
 	
 	public function findOrphanUser( $user ) {
@@ -544,6 +603,28 @@ class DottifyManager {
 			);
 		}
 		
+	}
+	
+	public function getBaseSurveybyUuid( $uuid ) {
+	    
+		$sql = "SELECT s.* FROM usersurvey1 s join user u on s.id = u.id and s.ver = u.thisver WHERE u.uuid = :uuid and u.ver = 0 ";
+		try {
+			$db = $this->getConnection ();
+			$stmt = $db->prepare ( $sql );
+			$stmt->bindParam ( "uuid", $uuid );
+			$stmt->execute ();
+			$obj = $stmt->fetchObject();
+			$db = null;
+			return $obj;
+		} catch ( PDOException $e ) {
+			$message = $e->getMessage ();
+			return array (
+					"Error" => array (
+							"text" => $message
+					)
+			);
+		}
+	
 	}
 	
 	public function validateUser($user, $attributes, $mode) {

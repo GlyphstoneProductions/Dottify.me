@@ -44,10 +44,19 @@ Map.prototype.addUser = function(user) {
 	    popupAnchor:  [5, -108] // point from which the popup should open relative to the iconAnchor
 	});
 	
+	var popuptext = 'Hello ' + user.data.username + '<br/> ' ;
+
+	if( user.data.refcount > 0 ) {
+		popuptext += 'You have directly refered: ' + user.data.refcount + ' users!<br/>' ;
+		popuptext += 'Your referral rank is #' + user.data.refrank + "<br/>" ;
+	} else {
+		popuptext += "You don't have any referrals yet<br/>Share a link on your favorite<br/>social media site and bump up your rank!<br/>" ;
+	}
+	
 	if( user.isMe ) {
 		if (user.hasCoordinate()) {
 			this.myMarker = new L.Marker( user.coordinate(), {icon: customIcon}) ; 
-			this.myMarker.addTo(this.leafletMap).bindPopup("<b>I't's Me!</b><br />" + user.data.zipcode ) ;
+			this.myMarker.addTo(this.leafletMap).bindPopup( popuptext ) ;
 			this.zoomTo( user.coordinate() ) ;
 		} else {
 			// TODO: Alert user that they do not have a coordinate and should input zip or choose alternative zip - or report zip missmatch 
