@@ -47,10 +47,15 @@ Map.prototype.addUser = function(user) {
 	var popuptext = 'Hello ' + user.data.username + '<br/> ' ;
 
 	if( user.data.refcount > 0 ) {
-		popuptext += 'You have directly refered: ' + user.data.refcount + ' users!<br/>' ;
+		popuptext += 'You have directly referred: ' + user.data.refcount + ' users!<br/>' ;
 		popuptext += 'Your referral rank is #' + user.data.refrank + "<br/>" ;
 	} else {
 		popuptext += "You don't have any referrals yet<br/>Share a link on your favorite<br/>social media site and bump up your rank!<br/>" ;
+	}
+	if( user.data.numOpenQuestions == 0 ) {
+		popuptext += "Good work.  You've answered all survey questions." ;
+	} else {
+		popuptext += "You have " + user.data.numOpenQuestions + " unanswered survey questions <br/>";
 	}
 	
 	if( user.isMe ) {
