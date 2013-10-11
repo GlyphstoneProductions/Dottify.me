@@ -69,8 +69,16 @@ UserInfoForm.prototype.initForm = function(user) {
 		userclass = user.getUserClass() ;
 		userMecon = user.data.mecon ;
 		userZipcode = user.data.zipcode ;
+		if( user.data.usertype = 10 ) {
+			// user is an administrator
+			// show stats and tools.
+			//$("#userinfo-ribbon").height(50);
+		} else {
+			//$("#userinfo-ribbon").height(25);			
+		}
 	} else {
 		var greeting = 'Click Here to Dottify Yourself!' ;
+		//$("#userinfo-ribbon").height(25);	
 		$('#usergreeting').html( greeting ) ;	
 		$('#logout').hide();
 		$('#login').show();

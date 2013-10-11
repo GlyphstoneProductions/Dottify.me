@@ -3,8 +3,8 @@
 #page {
 	width: 100%;
 	margin: 0;
-	background: #ffffff url('../images/background.png') repeat left top;
 	display: block;
+	background: #ffffff url('../images/background.png') repeat left top;
 }
 
 #body {
@@ -28,7 +28,7 @@
 #info {
 	margin: auto;
 	max-width:800px ;
-	height: 40px ;
+	height: 25px ;
 	position: relative ;
 	text-align: center;
 }
@@ -46,6 +46,40 @@
 	background-color:#e5eecc;
 	border:solid 1px #c3c3c3;
 	opacity:0.95;
+}
+
+#statbox {
+	position: absolute;
+	top: 15px;
+	right: 15px;
+	padding: 5px;
+	width: 150px;
+	height: 200px;
+	z-index: 100;
+	display: none;
+	-moz-border-radius: 10px;
+	-webkit-border-radius: 10px;
+	-khtml-border-radius: 10px;
+	border-radius: 10px;
+	font-size: 0.8em;
+	color: #7D2E19;
+	background-color: white;
+	opacity:0.80 ;
+}
+
+#statbar {
+	display:block;
+	width=100%;
+	border:solid 1px #c3c3c3;
+	-moz-border-radius: 5px;
+	-webkit-border-radius: 5px;
+	-khtml-border-radius: 5px;
+	border-radius: 10px;
+	
+	padding: 2px;
+	opacity:1.0;
+	background-color: #DDDDFF ;
+	text-align: center;
 }
 
 #mecon {
@@ -227,7 +261,7 @@ body {
 	font-family: Verdana, Geneva, sans-serif ;
 }
 
-img {
+.banner_img {
     width: inherit;  
  	 max-width: 100%; 
   	height: auto;   
