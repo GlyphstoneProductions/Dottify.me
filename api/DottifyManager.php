@@ -787,6 +787,25 @@ class DottifyManager {
 			);
 		}
 	}
+	
+	public function listCountries() {
+		// $this->showSession() ;
+		$sql = "select * from countries";
+		try {
+			$db = $this->getConnection ();
+			$stmt = $db->query ( $sql );
+			$countries = $stmt->fetchAll ( PDO::FETCH_OBJ );
+			$db = null;
+			return $countries;
+		} catch ( PDOException $e ) {
+			$message = $e->getMessage ();
+			return array (
+					"Error" => array (
+							"text" => $message
+					)
+			);
+		}
+	}
 	public function listNTDSUsers($state, $offset, $limit) {
 		$offset = (is_null ( $offset )) ? 0 : intval ( $offset );
 		$limit = (is_null ( $limit )) ? 100 : intval ( $limit );

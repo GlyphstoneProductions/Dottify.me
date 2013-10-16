@@ -58,9 +58,15 @@ Map.prototype.addUser = function(user) {
 		popuptext += "You have " + user.data.numOpenQuestions + " unanswered survey questions <br/>";
 	}
 	
+	var theMap = this ;
 	if( user.isMe ) {
 		if (user.hasCoordinate()) {
-			this.myMarker = new L.Marker( user.coordinate(), {icon: customIcon}) ; 
+			this.myMarker = new L.Marker( user.coordinate(), {icon: customIcon, draggable: true }) ; 
+			this.myMarker.on('dragend', function(e) {
+				// alert( "drag done! " + e.target.getLatLng() ) ;
+				// TODO: trigger an event to save new lat/long
+			} );
+			
 			this.myMarker.addTo(this.leafletMap).bindPopup( popuptext ) ;
 			this.zoomTo( user.coordinate() ) ;
 		} else {
@@ -73,6 +79,33 @@ Map.prototype.addUser = function(user) {
 	}
 
 }
+
+/*
+Map.prototype.show = function( obj, map ) {
+	
+	
+	var out = map.dump(obj, "", 0, map ) ;
+	alert( out ) ;
+}
+
+Map.prototype.dump = function( obj, nest, level, map ) {
+	if( level > 2 ) {
+		return "<<OVERFLOW>>" ;
+	}
+	
+	var out = "";
+	$.each( obj, function( i,n ) {
+		var nval = n ;
+		if( typeof n === "object")  {
+			nval = map.dump( n, nest + "  ", level + 1, map) ;
+		}
+		out += nest + i + "=[" + nval + "]\n" ;
+	} ) ;
+	
+	return out ;
+}
+*/
+
 
 Map.prototype.zoomTo = function(coordinate) {
 	this.leafletMap.setView([coordinate.lat, coordinate.lng], 9);

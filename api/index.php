@@ -33,6 +33,7 @@ $app->get( '/ntdsuser', 'listNTDSUsers') ;
 $app->get( '/usersession/logout', 'logout' ) ;
 $app->get( '/usersession/:uuid', 'getUserSessionInfo') ;
 $app->get( '/netinfluencers', 'getNetInfluencers');
+$app->get( '/country', 'listcountries') ;
 
 
 // --------------------------------------
@@ -240,6 +241,13 @@ function emailUserLink(  ) {
 	$info = $mgr->emailUserLink( $email ) ;
 	
 	send( $info, $start ) ;
+}
+
+function listcountries() {
+	$start = microtime() ;
+	$mgr = new DottifyManager() ;
+	$result = $mgr->listCountries() ;
+	send( $result, $start ) ;
 }
 
 // --------------------------------------------------------------

@@ -7,7 +7,7 @@ class Zipcodes{
 }
 
 class Zipcode {
-	public $zipCode ;
+	public $zipcode ;
 	public $country ;
 	public $latitude ;
 	public $longitude ;
