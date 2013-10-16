@@ -790,7 +790,7 @@ class DottifyManager {
 	
 	public function listCountries() {
 		// $this->showSession() ;
-		$sql = "select * from countries";
+		$sql = "select * from countries order by displorder, shortname";
 		try {
 			$db = $this->getConnection ();
 			$stmt = $db->query ( $sql );
