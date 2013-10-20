@@ -6,6 +6,7 @@ var STARTING_ZOOM = 3;
 
 var Map = function(mapDivId, users) {
 	
+	this.markers = {} ;
 	this.mapDivId = mapDivId;
 	this.attribText = 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://cloudmade.com">CloudMade</a>';
 	this.tileUrl = 'http://{s}.tile.osm.org/{z}/{x}/{y}.png';
@@ -44,37 +45,72 @@ Map.prototype.addUser = function(user) {
 	    popupAnchor:  [5, -108] // point from which the popup should open relative to the iconAnchor
 	});
 	
-	var popuptext = 'Hello ' + user.data.username + '<br/> ' ;
-
-	if( user.data.refcount > 0 ) {
-		popuptext += 'You have directly referred: ' + user.data.refcount + ' users!<br/>' ;
-		popuptext += 'Your referral rank is #' + user.data.refrank + "<br/>" ;
+	var popuptext = "" ;
+	var showPopup = false ;
+	
+	var now = new Date().getTime() / 1000;
+		
+	if( user.data.usersetloc == 0 ) {
+		showPopup = true ;
+		popuptext = "Drag your icon to where<br/>you would like it to appear.<br/>Please protect your privacy<br/> by <b>Not</b> placing it on your actual residence!";
+		
 	} else {
-		popuptext += "You don't have any referrals yet<br/>Share a link on your favorite<br/>social media site and bump up your rank!<br/>" ;
-	}
-	if( user.data.numOpenQuestions == 0 ) {
-		popuptext += "Good work.  You've answered all survey questions." ;
-	} else {
-		popuptext += "You have " + user.data.numOpenQuestions + " unanswered survey questions <br/>";
+		popuptext = 'Hello ' + user.data.username + '<br/> ' ;
+	
+		if( user.data.refcount > 0 ) {
+			popuptext += 'You have directly referred: ' + user.data.refcount + ' users!<br/>' ;
+			popuptext += 'Your referral rank is #' + user.data.refrank + "<br/>" ;
+		} else {
+			popuptext += "You don't have any referrals yet<br/>Share a link on your favorite<br/>social media site and bump up your rank!<br/>" ;
+		}
+		if( user.data.numOpenQuestions == 0 ) {
+			popuptext += "Good work.  You've answered all survey questions." ;
+		} else {
+			popuptext += "You have " + user.data.numOpenQuestions + " unanswered survey questions <br/>";
+		}
 	}
 	
 	var theMap = this ;
 	if( user.isMe ) {
 		if (user.hasCoordinate()) {
+			var userMarker = this.markers[user.data.uuid] ;
+			if( userMarker != null ) {
+				// remove placeholder marker.
+				console.log("Removing placeholder marker in favor of myMarker" ) ;
+				
+				this.leafletMap.removeLayer( useMarker ) ;
+			}
+			
 			this.myMarker = new L.Marker( user.coordinate(), {icon: customIcon, draggable: true }) ; 
+			this.markers[user.data.uuid] = this.myMarker ;
 			this.myMarker.on('dragend', function(e) {
 				// alert( "drag done! " + e.target.getLatLng() ) ;
-				// TODO: trigger an event to save new lat/long
+				var newPos = e.target.getLatLng() ;
+				var tmpUser = user.data ;
+				tmpUser.latitude = newPos.lat ;
+				tmpUser.longitude = newPos.lng ;
+				User.updatePosition( tmpUser ) ;
+				alert("User position updated") ;
+				
 			} );
 			
 			this.myMarker.addTo(this.leafletMap).bindPopup( popuptext ) ;
 			this.zoomTo( user.coordinate() ) ;
+			if( showPopup ) {
+				this.myMarker.openPopup();
+			}
+			
 		} else {
 			// TODO: Alert user that they do not have a coordinate and should input zip or choose alternative zip - or report zip missmatch 
 		}
 	} else {
 		if (user.hasCoordinate()) {
-			new L.Marker( user.coordinate()).addTo(this.leafletMap);
+			
+			var userMarker = this.markers[user.data.uuid] ;
+			if( userMarker == null ) {
+				userMarker = new L.Marker( user.coordinate()).addTo(this.leafletMap);
+				this.markers[user.data.uuid] = userMarker ;
+			}
 		}
 	}
 

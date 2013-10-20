@@ -7,4 +7,5 @@ class UserCache {
 	public $lastip ;
 	public $latitude ;
 	public $longitude ;
+	public $usersetloc ;
 }

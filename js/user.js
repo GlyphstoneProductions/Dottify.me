@@ -165,6 +165,21 @@ User.addSurvey = function( survey) {
 	return apiPromise;
 }
 
+User.updatePosition = function( user ) {
+	var apiPromise = $.Deferred();
+	$.ajax({
+		method: 'POST',
+		data: JSON.stringify( user ),
+		dataType: 'json',
+		url: 'api/user/position'
+	}).done(function(data){
+		apiPromise.resolve( data );
+	}).fail(function() {
+		apiPromise.reject()
+	});
+	return apiPromise;
+}
+
 User.getSurvey = function( id, version) {
 	var geturl = 'api/user/basesurvey/' + id + '/' + version ;
 	var apiPromise = $.Deferred();

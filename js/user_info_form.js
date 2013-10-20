@@ -45,10 +45,10 @@ UserInfoForm.prototype.initForm = function(user) {
 	
 	$("#userinfo-form").empty();
 	
-	var userclassid = null ;
-	var userclass = null ;
-	var userMecon = "" ;
-	var userZipcode = "" ;
+	//var userclassid = null ;
+	//var userclass = null ;
+	//var userMecon = "" ;
+	//var userZipcode = "" ;
 
 	if( user != null ) {
 		var greeting = 'Welcome back' ;
@@ -65,17 +65,6 @@ UserInfoForm.prototype.initForm = function(user) {
 			userform.logout( userform ) ;
 		}) ;
 
-		userclassid = user.data.userclass ;
-		userclass = user.getUserClass() ;
-		userMecon = user.data.mecon ;
-		userZipcode = user.data.zipcode ;
-		if( user.data.usertype = 10 ) {
-			// user is an administrator
-			// show stats and tools.
-			//$("#userinfo-ribbon").height(50);
-		} else {
-			//$("#userinfo-ribbon").height(25);			
-		}
 	} else {
 		var greeting = 'Click Here to Dottify Yourself!' ;
 		//$("#userinfo-ribbon").height(25);	
@@ -87,30 +76,7 @@ UserInfoForm.prototype.initForm = function(user) {
 	}
 	
 	var html = '<h3>Identity Information</h3> \
-				<div class="accordpanel" > \
-				<img id="userclass_err" class="erricon" src="images/error_triangle.png" > I am:<br/> \
-		    	<input id="type_trans" type="radio" name="userclass" value="0" ' + ((userclassid == "0")? "checked" : "" ) + '>Transgender/Transsexual/Gender non-conforming<br/> \
-		    	<input id="type-quest" type="radio" name="userclass" value="1" ' + ((userclassid == "1")? "checked" : "" ) + '>Curious about or Questioning my gender<br/> \
-		    	<input id="type-ally" type="radio" name="userclass" value="2" ' + ((userclassid == "2")? "checked" : "" ) + '>An ally or supporter of Trans* People<br/> \
-		    	<img id="zipcode_err" class="erricon" src="images/error_triangle.png" > Your 5-digit zipcode: <input id="zipcode" name="zipcode" type="text" placeholder="Enter your 5-digit zip code" maxlength="5" value="' + userZipcode + '" /><br/>  \
-		    	<img id="mecon_err" class="erricon" src="images/error_triangle.png" >Pick a custom "mecon" from the list below<br/> \
-	    			<div id="imagepicker_scroll" > \
-	    			   <div id="imagepicker_inner" >\
-	    			     <select id="mecon_select" class="image-picker" >' ;
-	
-	for( var n = 1; n < 31; n++ ) {
-		var num = ((n < 10)? '00' : '0' ) + n ;
-		var pinName = 'pin' + num + '.png' ;
-		var selected = '' ;
-		if( pinName == userMecon ) selected = " selected" ;
-		html += '<option data-img-src="images/' + pinName + '" value="' + pinName + '" ' + selected + '>pin</option>' ;		
-	}
-	
-	html += '	          </select> \
-						</div> \
-	    			</div> \
-				</div>' ;
-
+				<div class="accordpanel" > ' + this.getIdentityHtml(user) + '</div>' ;
 	
 	if( user != null ) {
 	
@@ -176,6 +142,8 @@ UserInfoForm.prototype.initForm = function(user) {
 		
 		$("#userinfo-form").accordion({ header: "h3", heightstyle: "fill" }) ;	// set up accordion of form pages
 		
+		this.fillIdentityData( user ) ;
+		
 		this.fillSurveyData( user ) ;
 		
 	} else {
@@ -184,6 +152,9 @@ UserInfoForm.prototype.initForm = function(user) {
 		} ) ;	
 		console.log( "not logged in. Activate accordion") ;
 		// $("#userinfo-form").accordion({ header: "h3", heightstyle: "fill" }) ;	// set up accordion of form pages
+		
+		this.fillIdentityData( user ) ;
+		
 	}
 
 		
@@ -234,6 +205,49 @@ UserInfoForm.prototype.fillSurveyData = function( user ) {
 
 }
 
+UserInfoForm.prototype.fillIdentityData = function( user ) {
+	console.log( "filling use data identity form:");
+	
+	var userclassid = null ;
+	var userMecon = "" ;
+	var userZipcode = "" ;
+	var countryCode = 'US' ;
+	
+	if( user ) {
+		userclassid = user.data.userclass ;
+		userMecon = user.data.mecon ;
+		userZipcode = user.data.zipcode ;
+		countryCode = user.data.countrycode ;
+	}
+	
+	UserInfoForm.setRadioGroupValue('userclass', userclassid) ;
+
+	//$("#mecon_select").val( userMecon ) ;
+	//$("#mecon_select option[value='" + userMecon + "']").attr("selected", "selected");
+	
+	Countries.getAll().done( function(countries) {
+		//console.log( ' got countries' + countries ) ;
+		
+		for( var i in countries ) {
+			var country = countries[i] ;
+			var isoid = country.isoid ;
+			var selected = ( isoid == countryCode )? true : false ;
+			if( selected ) {
+				console.log( "country:" + countryCode + " : " + country.shortname );
+			}
+			
+			$('#country_select')
+			   .append($("<option></option>")
+			   .attr("value", isoid)
+			   .attr("selected", selected )
+			   .text(country.shortname) );
+		}
+	} );
+	
+	$("#zipcode").val(userZipcode);
+	
+}
+
 UserInfoForm.setRadioGroupValue = function( groupName, value ) {
 	
 	var $radios = $("input:radio[name='" + groupName + "']");
@@ -257,6 +271,53 @@ UserInfoForm.prototype.matchPasswords = function() {
 	}
 	return true ;
 	
+}
+
+UserInfoForm.prototype.getIdentityHtml = function ( user ) {
+	
+	/*
+	 * <div class="formrow"> \
+		<img id="assignedgender_err" class="erricon" src="images/error_triangle.png" ><div class="formlabel">What was your gender assigned at birth:<br/> (on your birth certificate)</div>\
+	<div class="formctl"><select id="assignedgender"  > \
+		<option value="-1">Make a selection</option> \
+		<option value="0">Female</option> \
+		<option value="1">Male</option> \
+		</select>\
+	</div> \
+</div> \
+	 */
+	// TODO: resolve why jquery logic in setter does not set mecon correctly.
+	var userMecon = null ;
+	if( user ) {
+		userMecon = user.data.mecon ;
+	}
+	
+	var text = '<img id="userclass_err" class="erricon" src="images/error_triangle.png" > I am:<br/> \
+	<input id="type_trans" type="radio" name="userclass" value="0" >Transgender/Transsexual/Gender non-conforming<br/> \
+	<input id="type-quest" type="radio" name="userclass" value="1" >Curious about or Questioning my gender<br/> \
+	<input id="type-ally" type="radio" name="userclass" value="2" >An ally or supporter of Trans* People<br/> \
+	<img id="country_err" class="erricon" src="images/error_triangle.png" >Your Country:&nbsp&nbsp;<select id="country_select"></select><br/> \
+	<img id="zipcode_err" class="erricon" src="images/error_triangle.png" >Your postal/zipcode:&nbsp <input id="zipcode" name="zipcode" type="text" placeholder="Enter your postal code" maxlength="6" /><br/>  \
+	<img id="mecon_err" class="erricon" src="images/error_triangle.png" >Pick a custom "Mecon" from the list below<br/> \
+		<div id="imagepicker_scroll" > \
+		   <div id="imagepicker_inner" >\
+		     <select id="mecon_select" class="image-picker" >' ;
+
+	for( var n = 1; n < 31; n++ ) {
+		var num = ((n < 10)? '00' : '0' ) + n ;
+		var pinName = 'pin' + num + '.png' ;
+		var selected = '' ;
+		if( pinName == userMecon ) selected = " selected" ;
+		
+		text += '<option data-img-src="images/' + pinName + '" value="' + pinName + '" ' + selected + '>pin</option>' ;		
+	}
+	
+	text += '	 </select> \
+			</div> \
+		</div> ';
+	
+	
+	return text ;
 }
 
 
@@ -574,10 +635,12 @@ UserInfoForm.prototype.hideAllErrorIcons = function() {
 UserInfoForm.prototype.getNewUser = function() {
 	var user = new User(new Object()) ;
 	var userclass = $("input:radio[name='userclass']:checked").val() ;
+	var country = $("#country_select").val() ;
 	var zipcode = $("#zipcode").val() ;
 	var mecon = $("#mecon_select").val();
 	console.log("userclass: " + userclass + " zipcode: " + zipcode + " mecon: " + mecon ) ;
 	user.data.userclass = userclass ;
+	user.data.countrycode = country ;
 	user.data.zipcode = zipcode ;
 	user.data.mecon = mecon ;
 	user.isMe = true ;
@@ -588,15 +651,17 @@ UserInfoForm.prototype.getNewUser = function() {
 UserInfoForm.prototype.getUpdateUser = function() {
 	var user = this.user ;
 	var userclass = $("input:radio[name='userclass']:checked").val() ;
+	var country = $("#country_select").val() ;
 	var zipcode = $("#zipcode").val() ;
 	var mecon = $("#mecon_select").val();
 	var staylogged = ($("#staylogged").is(":checked"))? 1 : 0;
 	var email = $("#email").val();
 	var username = $("#username").val();
 	var password = $("#password").val();
-	console.log("userclass: " + userclass + " zipcode: " + zipcode + " mecon: " + mecon + " staylogged: " + staylogged + " email: " + email + " username: " + username + " password: " + password ) ;
+	console.log("userclass: " + userclass + " country: " + country + " zipcode: " + zipcode + " mecon: " + mecon + " staylogged: " + staylogged + " email: " + email + " username: " + username + " password: " + password ) ;
 	
 	user.data.userclass = userclass ;
+	user.data.countrycode = country ;
 	user.data.zipcode = zipcode ;
 	user.data.mecon = mecon ;
 	user.data.staylogged = staylogged ;

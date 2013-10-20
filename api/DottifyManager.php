@@ -14,7 +14,7 @@ class DottifyManager {
 	public function listusers() {
 		// $this->showSession() ;
 		$sql = "select u.id, u.uuid, u.refid, u.ver, u.thisver, u.username, u.created, u.modified, u.refuser, u.refuserid, u.email, u.zipcode, ";
-		$sql .= " u.countrycode, u.usertype, u.userstatus, u.userclass, u.mecon, u.userip, u.staylogged, c.latitude, c.longitude ";
+		$sql .= " u.countrycode, u.usertype, u.userstatus, u.userclass, u.mecon, u.userip, u.staylogged, c.latitude, c.longitude, c.usersetloc ";
 		$sql .= "FROM user u left outer join usercache c on u.id = c.id WHERE u.ver = 0 ORDER BY u.created";
 		try {
 			$db = $this->getConnection ();
@@ -37,7 +37,7 @@ class DottifyManager {
 	
 	public function getUserByUuid($uuid) {
 		$sql = "select u.id, u.uuid, u.refid, u.ver, u.thisver, u.username, u.created, u.modified, u.refuser, u.refuserid, u.email, u.zipcode, ";
-		$sql .= " u.countrycode, u.usertype, u.userstatus, u.userclass, u.mecon, u.userip, u.staylogged, c.latitude, c.longitude ";
+		$sql .= " u.countrycode, u.usertype, u.userstatus, u.userclass, u.mecon, u.userip, u.staylogged, c.latitude, c.longitude, c.usersetloc ";
 		$sql .= "FROM user u left outer join usercache c on u.id = c.id WHERE u.uuid = :uuid AND u.ver = 0";
 		
 		// $sql = "SELECT * FROM user WHERE uuid=:uuid and ver = 0";
@@ -62,6 +62,45 @@ class DottifyManager {
 					"Error" => array (
 							"text" => $message 
 					) 
+			);
+		}
+	}
+	
+	/** 
+	 * Stripped down get by id and ver for internal use
+	 * @param unknown $id
+	 * @param unknown $ver
+	 * @return mixed|multitype:multitype:unknown
+	 */
+	public function getUserById($id, $ver) {
+		
+		$id = intval($id);
+		
+		$sql = "select u.id, u.uuid, u.refid, u.ver, u.thisver, u.username, u.created, u.modified, u.refuser, u.refuserid, u.email, u.zipcode, ";
+		$sql .= " u.countrycode, u.usertype, u.userstatus, u.userclass, u.mecon, u.userip, u.staylogged ";
+		$sql .= " FROM user u WHERE u.id = :id AND u.ver = :ver";
+		
+		error_log ( "get user by id: $id ver: $ver \n", 3, '/var/tmp/php.log' );
+		try {
+			$db = $this->getConnection ();
+			$stmt = $db->prepare ( $sql );
+			$stmt->bindParam ( "id", $id , PDO::PARAM_INT);
+			$stmt->bindParam ( "ver", $ver , PDO::PARAM_INT);
+			$stmt->execute ();
+			$user = $stmt->fetchObject ( "User" );
+			$modified = $user->modified ;
+			$ver = $user->ver ;
+			$thisver = $user->thisver ;
+			error_log ( "got user user modified $modified, $ver, $thisver \n", 3, '/var/tmp/php.log' );
+			$db = null;
+			return $user;
+		} catch ( PDOException $e ) {
+			$message = $e->getMessage ();
+			error_log ( "Error getting user $id/$ver err= $message \n", 3, '/var/tmp/php.log' );
+			return array (
+					"Error" => array (
+							"text" => $message
+					)
 			);
 		}
 	}
@@ -294,9 +333,10 @@ class DottifyManager {
 			$user->password = ""; // for security
 			                       
 			// look up the lat/long of the zip and compute a random offset as appropriate (+- .015 degrees lat and long ) Maybe less for latitude..
-			$usercache = $this->createUserCache ( $user->id, $user->zipcode, $userip );
+			$usercache = $this->createUserCache ( $user->id, $user->countrycode, $user->zipcode, $userip );
 			$user->latitude = $usercache->latitude;
 			$user->longitude = $usercache->longitude;
+			$user->locupdate = true ;	// flag front end that location has been set/updated
 			
 			return $user;
 		} catch ( PDOException $e ) {
@@ -335,6 +375,9 @@ class DottifyManager {
 		
 		$userip = $_SERVER ['REMOTE_ADDR'];
 
+		// for reference comparisons
+		$olduser = $this->getUserById( $user->id, 0) ;
+		
 		if (!$norev) {
 			error_log ( "save user version \n", 3, '/var/tmp/php.log' );
 			$this->saveUserVersion ( $user );
@@ -385,7 +428,23 @@ class DottifyManager {
 			$db = null;
 			$user->password = ""; // for security
 			                       
-			//TODO: update the usercache if the zipcode has changed.
+			error_log( "check for location change: ") ;
+			
+			if( $user->countrycode != $olduser->countrycode || $user->zipcode != $olduser->zipcode ) {
+				// if the country or zip has changed update.
+				// Even if user has customized their lat/long it will be reset.
+				$usercache = $this->updateUserCache( $user->id, $user->countrycode, $user->zipcode ) ;
+				$user->latitude = $usercache->latitude;
+				$user->longitude = $usercache->longitude;
+				$user->usersetloc = 1 ;	// flag front end that location has been set/updated
+				
+			} else {
+				// fetch cache (lat/long) for the record
+				$usercache = $this->getUserCache( $user->id ) ;
+				$user->latitude = $usercache->latitude;
+				$user->longitude = $usercache->longitude;
+				$user->usersetloc = $usercache->usersetloc ;	// flag front end that location has been set/updated
+			}
 			
 			return $user;
 		} catch ( PDOException $e ) {
@@ -427,29 +486,22 @@ class DottifyManager {
 		}
 	}
 	
-	public function createUserCache($userid, $zipcode, $userip) {
+	public function createUserCache($userid, $countrycode, $zipcode, $userip) {
 		error_log ( 'addusercache\n', 3, '/var/tmp/php.log' );
 		
 		$userCache = new UserCache ();
 		$userCache->id = $userid;
 		$userCache->lastip = $userip;
-		$zipinfo = $this->getZipcodeInfo ( $zipcode );
 		
-		if (! is_null ( $zipinfo )) {
-			$lat = $zipinfo->latitude;
-			$long = $zipinfo->longitude;
-			$latoffset = - 0.015 + $this->getRandFloat ( 300 ); // +/- 0.015 degrees should be about 1 mile radius?
-			$longoffset = - 0.015 + $this->getRandFloat ( 300 );
-			$userCache->latitude = $lat + $latoffset;
-			$userCache->longitude = $long + $longoffset;
-		}
+		$userCache = $this->calcUserLatLong( $userCache, $countrycode, $zipcode ) ;
 		
-		$sql = "INSERT INTO usercache (id, lastip, latitude, longitude) ";
-		$sql .= "VALUES (:id, :lastip, :latitude, :longitude )";
+				
+		$sql = "INSERT INTO usercache (id, lastip, latitude, longitude, usersetloc) ";
+		$sql .= "VALUES (:id, :lastip, :latitude, :longitude, 0 )";
 		try {
 			$db = $this->getConnection ();
 			$stmt = $db->prepare ( $sql );
-			$stmt->bindParam ( "id", $userCache->id, PDO::PARAM_INT );
+			$stmt->bindParam ( "id", intval($userCache->id), PDO::PARAM_INT );
 			$stmt->bindParam ( "lastip", $userCache->lastip ); // my refid
 			$stmt->bindParam ( "latitude", $userCache->latitude );
 			$stmt->bindParam ( "longitude", $userCache->longitude );
@@ -478,45 +530,94 @@ class DottifyManager {
 	 * @param unknown $userip        	
 	 * @return UserCache multitype:multitype:unknown
 	 */
-	public function updateUserCache($userid, $zipcode, $userip) {
+	public function updateUserCache($userid, $countrycode, $zipcode) {
 		error_log ( 'updateusercache\n', 3, '/var/tmp/php.log' );
 		
-		$userCache = new UserCache ();
-		$userCache->id = $userid;
-		$userCache->lastip = $userip;
-		$zipinfo = $this->getZipcodeInfo ( $zipcode );
+		$usercache = new UserCache() ;
+		$usercache = $this->calcUserLatLong( $usercache, $countrycode, $zipcode ) ;
 		
-		if (! is_null ( $zipinfo )) {
-			$lat = $zipinfo->latitude;
-			$long = $zipinfo->longitude;
-			$latoffset = - 0.015 + $this->getRandFloat ( 300 ); // +/- 0.015 degrees should be about 1 mile radius?
-			$longoffset = - 0.015 + $this->getRandFloat ( 200 );
-			$userCache->latitude = $lat + $latoffset;
-			$userCache->longitude = $long + $longoffset;
+		$this->updateUserLatLong( $userid, $usercache->latitude, $usercache->longitude, 0 );
+		return $usercache ;
+	}
+	
+	public function calcUserLatLong( $usercache, $countrycode, $zipcode ) {
+		
+		if( $countrycode == 'US' || $countrycode == 'CA') {
+		
+			$zipinfo = $this->getZipcodeInfo ( $countrycode, $zipcode );
+			if (!is_null ( $zipinfo )) {
+				$latitude = $zipinfo->latitude;
+				$longitude = $zipinfo->longitude;
+				$latoffset = - 0.015 + $this->getRandFloat ( 300 ); // +/- 0.015 degrees should be about 1 mile radius?
+				$longoffset = - 0.015 + $this->getRandFloat ( 200 );
+
+			}
+		} else {
+			$country = $this->getCountry( $countrycode ) ;
+			if( !is_null( $country)) {
+				$latitude = $country->latitude;
+				$longitude = $country->longitude;
+				$latoffset = - 0.015 + $this->getRandFloat ( 600 );  // larger spread for countries
+				$longoffset = - 0.015 + $this->getRandFloat ( 600 );
+			}
 		}
 		
-		$sql = "UPDATE usercache ( lastip, latitude, longitude) ";
-		$sql .= "VALUES ( :lastip, :latitude, :longitude ) where ip = :ip";
+		$usercache->latitude = $latitude + $latoffset;
+		$usercache->longitude = $longitude + $longoffset;
+		
+		return $usercache ;
+		
+	}
+	
+
+	public function getUserCache( $id ) {
+	
+		$sql = "SELECT * FROM usercache WHERE id = :id";
 		try {
 			$db = $this->getConnection ();
 			$stmt = $db->prepare ( $sql );
-			$stmt->bindParam ( "id", $userCache->id, PDO::PARAM_INT );
-			$stmt->bindParam ( "lastip", $userCache->lastip ); // my refid
-			$stmt->bindParam ( "latitude", $userCache->latitude );
-			$stmt->bindParam ( "longitude", $userCache->longitude );
-			
+			$stmt->bindParam ( "id", intval($id), PDO::PARAM_INT );
 			$stmt->execute ();
-			
+			$obj = $stmt->fetchObject();
 			$db = null;
-			
-			return $userCache;
+			return $obj;
+		} catch ( PDOException $e ) {
+			$message = $e->getMessage ();
+			return array (
+					"Error" => array (
+							"text" => $message
+					)
+			);
+		}
+	
+	}
+	
+	public function updateUserPosition( $user ) {
+		$this->updateUserLatLong( $user->id, $user->latitude, $user->longitude, 1 ) ;
+		return $user ;
+	}
+	
+	public function updateUserLatLong( $userid, $latitude, $longitude, $usersetloc ) {
+		
+		$sql = "UPDATE usercache SET latitude = :latitude, longitude = :longitude, usersetloc = :usersetloc where id = :id ";
+		try {
+			$db = $this->getConnection ();
+			$stmt = $db->prepare ( $sql );
+			$stmt->bindParam ( "id", intval($userid), PDO::PARAM_INT );
+			$stmt->bindParam ( "latitude", $latitude );
+			$stmt->bindParam ( "longitude", $longitude );
+			$stmt->bindParam ( "usersetloc", $usersetloc, PDO::PARAM_INT);
+				
+			$stmt->execute ();
+			$db = null;
+
 		} catch ( PDOException $e ) {
 			$message = $e->getMessage ();
 			error_log ( "Error creating user: $message\n", 3, '/var/tmp/php.log' );
 			return array (
 					"Error" => array (
-							"text" => $message 
-					) 
+							"text" => $message
+					)
 			);
 		}
 	}
@@ -632,9 +733,11 @@ class DottifyManager {
 
 		$val = new ValidationList ();
 		// valid zipcode,
-		if( !$this->zipcodeExists( $user->zipcode )) {
-			$val->add ( new Validation ( "zipcode", false, "zipcode not found. Only 5 digits allowed." ) );
-			$val->allvalid = false ;
+		if( $user->countrycode == 'US' || $user->countrycode == 'CA' ) {
+			if( !$this->zipcodeExists( $user->countrycode, $user->zipcode )) {
+				$val->add ( new Validation ( "zipcode", false, "zipcode not found." ) );
+				$val->allvalid = false ;
+			}
 		}
 		
 		if( !isset( $user->userclass)) {
@@ -679,8 +782,8 @@ class DottifyManager {
 		}
 	}
 	
-	private function zipcodeExists( $zipcode ) {
-		$zipinfo = $this->getZipcodeInfo( $zipcode ) ;
+	private function zipcodeExists( $countrycode, $zipcode ) {
+		$zipinfo = $this->getZipcodeInfo( $countrycode, $zipcode ) ;
 		// var_dump($zipinfo) ;
 		return ( $zipinfo )? true : false ;
 	}
@@ -740,11 +843,19 @@ class DottifyManager {
 		}
 	}
 	
-	public function getZipcodeInfo($zipcode) {
-		$sql = "SELECT * FROM zipinfo WHERE zipcode=:zipcode ";
+	
+	/**
+	 * get postal code (actually) by country (currently US and CA)
+	 * @param unknown $countrycode
+	 * @param unknown $zipcode
+	 * @return mixed|multitype:multitype:unknown
+	 */
+	public function getZipcodeInfo($countrycode, $zipcode) {
+		$sql = "SELECT * FROM zipinfo WHERE country = :country and zipcode=:zipcode ";
 		try {
 			$db = $this->getConnection ();
 			$stmt = $db->prepare ( $sql );
+			$stmt->bindParam ( "country", $countrycode );
 			$stmt->bindParam ( "zipcode", $zipcode );
 			$stmt->execute ();
 			$obj = $stmt->fetchObject ( "Zipcode" );
@@ -766,8 +877,8 @@ class DottifyManager {
 		$limit = (is_null ( $limit )) ? 100 : intval ( $limit );
 		// echo "offset: $offset limit : $limit\n" ;
 		
-		$sql = "select zipcode, country, latitude, longitude, state, population";
-		$sql .= " FROM zipinfo where population > 0 ORDER BY state LIMIT  :offset, :limit";
+		$sql = "select zipcode, country, countryloc, latitude, longitude, state, population";
+		$sql .= " FROM zipinfo where population > 0 ORDER BY country, state LIMIT  :offset, :limit";
 		// $sql .= " FROM zipinfo where population > 0 ORDER BY state limit 0, 20";
 		try {
 			$db = $this->getConnection ();
@@ -806,6 +917,27 @@ class DottifyManager {
 			);
 		}
 	}
+	
+	public function getCountry( $isoid) {
+		$sql = "SELECT * FROM countries WHERE isoid =:isoid ";
+		try {
+			$db = $this->getConnection ();
+			$stmt = $db->prepare ( $sql );
+			$stmt->bindParam ( "isoid", $isoid );
+			$stmt->execute ();
+			$obj = $stmt->fetchObject ( );
+			$db = null;
+			return $obj;
+		} catch ( PDOException $e ) {
+			$message = $e->getMessage ();
+			return array (
+					"Error" => array (
+							"text" => $message
+					)
+			);
+		}
+	}
+	
 	public function listNTDSUsers($state, $offset, $limit) {
 		$offset = (is_null ( $offset )) ? 0 : intval ( $offset );
 		$limit = (is_null ( $limit )) ? 100 : intval ( $limit );

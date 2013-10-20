@@ -23,6 +23,7 @@ $app->post( '/user/validate', 'validateuser' ) ;
 $app->get( '/user/validate/:uuid', 'revalidateuser' ) ;
 $app->get( '/user/sendlink', 'emailUserLink') ;
 $app->post( '/user/sendlink', 'emailUserLink') ;
+$app->post( '/user/position', 'updateUserPosition') ;
 $app->get( '/user/:uuid', 'getuser' ) ;
 $app->post( '/user', 'createuser' ) ;
 $app->put( '/user', 'updateuser' ) ;
@@ -34,6 +35,7 @@ $app->get( '/usersession/logout', 'logout' ) ;
 $app->get( '/usersession/:uuid', 'getUserSessionInfo') ;
 $app->get( '/netinfluencers', 'getNetInfluencers');
 $app->get( '/country', 'listcountries') ;
+$app->get( '/country/:isoid', 'getcountry' );
 
 
 // --------------------------------------
@@ -123,6 +125,15 @@ function updateuser() {
 	$norev = $request->params("norev") ;
 	$mgr = new DottifyManager() ;
 	$userout = $mgr->updateUser( $user, $norev ) ;
+	send( $userout, $start) ;
+}
+
+function updateUserPosition() {
+	$start = microtime() ;
+	$request = Slim::getInstance()->request();
+	$user = json_decode($request->getBody());
+	$mgr = new DottifyManager() ;
+	$userout = $mgr->updateUserPosition( $user ) ;
 	send( $userout, $start) ;
 }
 
@@ -247,6 +258,13 @@ function listcountries() {
 	$start = microtime() ;
 	$mgr = new DottifyManager() ;
 	$result = $mgr->listCountries() ;
+	send( $result, $start ) ;
+}
+
+function getcountry($isoid) {
+	$start = microtime() ;
+	$mgr = new DottifyManager() ;
+	$result = $mgr->getCountry($isoid) ;
 	send( $result, $start ) ;
 }
 
