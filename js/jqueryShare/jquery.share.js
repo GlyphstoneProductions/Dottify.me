@@ -41,8 +41,9 @@
                         href;
 
                     // append HTML for each network button
-                    for (var item in networks) {
-                        item = networks[item];
+                
+                    for( var ni = 0; ni < networks.length; ni++) {
+                        item = networks[ni];
                         href = helpers.networkDefs[item].url;
                         href = href.replace('|u|',u).replace('|t|',t).replace('|d|',d)
                                    .replace('|140|',t.substring(0,130));

@@ -36,6 +36,7 @@ $app->get( '/usersession/:uuid', 'getUserSessionInfo') ;
 $app->get( '/netinfluencers', 'getNetInfluencers');
 $app->get( '/country', 'listcountries') ;
 $app->get( '/country/:isoid', 'getcountry' );
+$app->get( '/stats/taglist', 'getTagList') ;
 
 
 // --------------------------------------
@@ -266,6 +267,15 @@ function getcountry($isoid) {
 	$mgr = new DottifyManager() ;
 	$result = $mgr->getCountry($isoid) ;
 	send( $result, $start ) ;
+}
+
+function getTagList() {
+	$start = microtime() ;
+	$mgr = new DottifyManager() ;
+	$request = Slim::getInstance()->request();
+	$raw = $request->get( "raw" ) ;
+	$result = $mgr->getTagList($raw) ;
+	send( $result, $start ) ;	
 }
 
 // --------------------------------------------------------------

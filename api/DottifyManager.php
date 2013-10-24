@@ -1076,6 +1076,105 @@ class DottifyManager {
 		}
 	}
 	
+	// =============================================================================
+	// Stats methods
+	
+	public function getTagList($raw ) {
+		$sql = "select s.genderdesc from usersurvey1 s join user u on s.id = u.id and s.ver = u.thisver where u.ver = 0" ;
+
+		$desclist = array() ;
+		try {
+			$db = $this->getConnection ();
+			$stmt = $db->prepare ( $sql );
+			$stmt->execute ();
+			$desclist = $stmt->fetchAll( PDO::FETCH_COLUMN );
+			$db = null;
+			if( $raw ) return $desclist ;
+			
+			return $this->processTagList( $desclist ) ;
+		} catch ( PDOException $e ) {
+			$message = $e->getMessage ();
+			return array (
+					"Error" => array (
+							"text" => $message
+					)
+			);
+		}
+	
+	}
+	
+	private function processTagList( $desclist ) {
+		$stoplist = array( 'a', 'and', 'as', 'am', 'an', 'be', 'both', 'crucial','detail', 'etc', 'experience', 'is', 'happens',  'i', 
+				'like', 'likes', 'only', 'on', 'of',  'when', 'to', 'that',  'that','the', 'with', 'who', "i'm", 'interior', 'exterior', 'expresses', 'late',
+				'simple','men', 'identity', 'working','aligning'
+				) ;
+
+		$phrases = array( 
+			"trans" => array( "trans-man", "trans-woman", "trans-girl", "trans-dyke"),
+			"transgender" => array( "transgender-man", "transgender-woman", "transgender-female" ),
+			"transsexual" => array( "transsexual-woman", "transsexual-man"),
+			"girlie" => array( "girlie-man"),
+			"two" => array( "two-spirit"), 
+			"pan" => array( "pan-sexual"),
+			"gender" => array( "gender-queer", "gender-outlaw"),
+			"woman" => array( "woman-of-transgender-experience", "woman-of-transsexual-experience", "woman-who-happens-to-be-trans")
+		) ;
+		
+		$tagcounts = array() ;
+		
+		foreach( $desclist as $desc ) {
+			$desc = strtolower( $desc ) ;
+			// eliminate anything but alpha and selected charactgers
+			$desc = preg_replace( '/[^a-z\-\'\*]/', ' ', $desc) ;
+			// compress excess whitespace ;
+			$desc = preg_replace('/\s\s+/', ' ', $desc);
+			$desc = preg_replace('/[\r\n]/', ' ', $desc );
+			$tags = explode( ' ', $desc) ;
+
+			for( $n = 0; $n < count($tags); $n++) {
+			    $tag = $tags[$n] ;
+				
+				if( $tag !== "" && !in_array( $tag, $stoplist)) {
+					$tag = $this->mergeTagPhrase( $tag, $tags, $phrases, $n );
+				    if( array_key_exists( $tag, $tagcounts ) ) {
+				    	$tagcounts[$tag] += 1 ;
+				    } else {
+				    	$tagcounts[$tag] = 1 ;
+				    }
+				}
+			}
+						
+		}
+		return $tagcounts ;
+	}
+	
+	private function mergeTagPhrase( $tag, $tags, $phrases, &$n ) {
+		if( array_key_exists( $tag, $phrases)) {
+			$candidates = $phrases[$tag] ;
+			foreach( $candidates as $candidate ) {
+				if( $this->phraseMatch( $candidate, $tags, $n)) {
+					return $candidate ;
+				}
+			}
+		}
+		return $tag ;
+	}
+	
+	private function phraseMatch( $phrase, $tags, &$n ) {
+		$phrasetags = explode( '-', $phrase) ;
+		if( count( $tags) >= $n + count( $phrasetags)) {
+			for( $m = 0; $m < count( $phrasetags); $m++ ) {
+				$pt = $phrasetags[$m] ;
+				if( $pt !== $tags[$n + $m]) {
+					return false ;
+				}
+			}
+			$n += count( $phrasetags ) - 1 ;
+			return true ;
+		}
+		return false ;
+	}
+	
 	protected function getSessionVar($varname, $defval) {
 		if (isset ( $_SESSION [$varname] )) {
 			return $_SESSION [$varname];

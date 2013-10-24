@@ -17,7 +17,7 @@ Dottifyme.prototype.initialize = function(first) {
 	this.users.loadAll();
 	this.userForm = new UserInfoForm( this ) ;
 	this.loginForm = new LoginForm( this ) ;
-
+	this.initWordCloud();
 }
 
 Dottifyme.prototype.onSessionLoad = function( event, data, app ) {
@@ -98,6 +98,40 @@ Dottifyme.prototype.getUrlParam = function( paramName ) {
 		return results[1] ;
 	}
 	return null ;
+}
+
+Dottifyme.prototype.initWordCloud = function() {
+
+	
+	Stats.getIdentityTags().done( function( data){
+		//console.log( JSON.stringify(data));
+		var termspans = "";
+		for( var tag in data )  {
+			//console.log( tag + ":" + data[tag] );
+			termspans += '<span data-weight="' + data[tag] + '">' + tag + '</span>' ;
+		}
+		console.log( termspans);
+		$("#wordcloud").html( termspans ) ;
+		
+		$("#wordcloud").awesomeCloud({
+			"size" : {
+				"grid" : 12,
+				"factor" : 15,
+				"normalize": false
+			},
+			"options" : {
+				"color" : "random-dark",
+				"rotationRatio" : 0.35
+				
+			},
+			"font" : "Verdana, Geneva, sans-serif",
+			"shape" : "square"
+		});
+		
+	});
+	
+
+	
 }
 
 

@@ -256,6 +256,8 @@ button#expand {
 	display: block;
 }
 
+
+
 body {
 	background-color: #13355B;
 	font-family: Verdana, Geneva, sans-serif ;
@@ -265,6 +267,53 @@ body {
     width: inherit;  
  	 max-width: 100%; 
   	height: auto;   
+}
+
+#stats {
+
+	background-color:#ddffff ;
+	width: 95%;
+	border: 1px solid #036;
+	margin: auto ;
+	-moz-border-radius: 10px;
+	-webkit-border-radius: 10px;
+	-khtml-border-radius: 10px;
+	border-radius: 10px;
+	
+}
+
+#statsheader {
+	background-color:white;
+	height:25px;
+	padding: 5px;
+	margin: 5px;
+	text-align:center;
+	-moz-border-radius: 10px;
+	-webkit-border-radius: 10px;
+	-khtml-border-radius: 10px;
+	border-radius: 10px;
+
+}
+
+.statbox {
+	border: 1px solid #036;
+	margin: auto ;
+	width:525px;
+	height: 535px;
+	padding: 4px;
+		
+}
+
+.statboxtitle {
+	text-align: center;
+}
+
+.wordcloud {
+	border: 1px solid #036;
+	height: 500px;
+	margin: 8px;
+	padding: 0;
+	width: 500px;
 }
 
 #header {
@@ -279,7 +328,7 @@ body {
 }
 
 #footer {
-	height: 200px;
+	max-height: 100px;
 	display: block;
 	text-align:center
 	
