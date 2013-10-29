@@ -37,6 +37,7 @@ $app->get( '/netinfluencers', 'getNetInfluencers');
 $app->get( '/country', 'listcountries') ;
 $app->get( '/country/:isoid', 'getcountry' );
 $app->get( '/stats/taglist', 'getTagList') ;
+$app->get( '/stats/usersperzip', 'getUsersPerZip');
 
 
 // --------------------------------------
@@ -275,6 +276,15 @@ function getTagList() {
 	$request = Slim::getInstance()->request();
 	$raw = $request->get( "raw" ) ;
 	$result = $mgr->getTagList($raw) ;
+	send( $result, $start ) ;	
+}
+
+function getUsersPerZip() {
+	$start = microtime() ;
+	$mgr = new DottifyManager() ;
+	$request = Slim::getInstance()->request();
+	$country = $request->get( "country" ) ;
+	$result = $mgr->getUsersPerZip($country) ;
 	send( $result, $start ) ;	
 }
 

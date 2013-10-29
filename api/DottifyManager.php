@@ -1175,6 +1175,41 @@ class DottifyManager {
 		return false ;
 	}
 	
+	
+	public function getUsersPerZip( $country ) {
+		
+		if( $country ) {
+			$sql = "select zi.zipcode, zi.latitude, zi.longitude, zi.country, count(*) as 'count' from user u join zipinfo zi on u.zipcode = zi.zipcode " ;
+			$sql .= " where u.ver = 0 and u.countrycode = :countrycode group by u.zipcode order by count(*) desc" ;
+		} else {
+			$sql = "select zi.zipcode, zi.latitude, zi.longitude, zi.country, count(*) as 'count'  from user u join zipinfo zi on u.zipcode = zi.zipcode " ;
+			$sql .= " where u.ver = 0 group by u.zipcode order by count(*) desc" ;
+		}
+		
+		$desclist = array() ;
+		try {
+			$db = $this->getConnection ();
+			$stmt = $db->prepare ( $sql );
+			if( $country){
+				$stmt->bindParam ( "countrycode", $country );
+			}
+			$stmt->execute ();
+			$objs = $stmt->fetchAll ( PDO::FETCH_OBJ );
+			$db = null;
+			return $objs;
+
+		} catch ( PDOException $e ) {
+			$message = $e->getMessage ();
+			return array (
+					"Error" => array (
+							"text" => $message
+					)
+			);
+		}		
+	}
+	
+	// =====================================================================================================================
+	
 	protected function getSessionVar($varname, $defval) {
 		if (isset ( $_SESSION [$varname] )) {
 			return $_SESSION [$varname];

@@ -1,0 +1,68 @@
+
+
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.4.4/leaflet.css" />
+    <!--[if lte IE 8]>
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.4.4/leaflet.ie.css" />
+    <![endif]-->
+    <script type="text/javascript" src="script/jquery.js"></script>
+    <script src="http://cdn.leafletjs.com/leaflet-0.4.4/leaflet-src.js"></script>
+    <script type="text/javascript" src="js/heatmap/heatmap.js"></script>
+    <script type="text/javascript" src="js/heatmap/heatmap-leaflet.js"></script>
+     
+    <script type="text/javascript" charset="utf-8">
+    $(function() {
+     
+    var baseLayer = L.tileLayer(
+    'http://{s}.tile.cloudmade.com/ad132e106cd246ec961bbdfbe0228fe8/997/256/{z}/{x}/{y}.png',{
+    attribution: 'Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://cloudmade.com">CloudMade</a>',
+    maxZoom: 18
+    }
+    );
+     
+    var heatmapLayer = L.TileLayer.heatMap({
+    radius: 20,
+    opacity: 0.8,
+    gradient: {
+    0.45: "rgb(0,0,255)",
+    0.55: "rgb(0,255,255)",
+    0.65: "rgb(0,255,0)",
+    0.95: "yellow",
+    1.0: "rgb(255,0,0)"
+    }
+    });
+     
+    // heatmapLayer.addData(testData.data);
+     heatmapLayer.setData(testData.data);
+     
+    var overlayMaps = {
+    'Heatmap': heatmapLayer
+    };
+     
+    var controls = L.control.layers(null, overlayMaps, {collapsed: false});
+     
+    var map = new L.Map('heatmapArea', {
+    center: new L.LatLng(51.505, -0.09),
+    zoom: 6,
+    layers: [baseLayer, heatmapLayer]
+    });
+     
+    controls.addTo(map);
+     
+    // make accessible for debugging
+    layer = heatmapLayer;
+    });
+    </script>
+    </head>
+    <body>
+    <script type="text/javascript" charset="utf-8">
+    var testData={
+    max: 46,
+    data: [{lat: 33.5363, lon:-117.044, value: 1},{lat: 33.5608, lon:-117.24, value: 1}]
+    };
+    </script>
+    </body>
+    </html>
+

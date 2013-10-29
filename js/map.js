@@ -12,11 +12,36 @@ var Map = function(mapDivId, users) {
 	this.tileUrl = 'http://{s}.tile.osm.org/{z}/{x}/{y}.png';
 
 	this.leafletMap = L.map(mapDivId).setView([STARTING_LAT, STARTING_LONG], STARTING_ZOOM);
-	L.tileLayer(this.tileUrl, {
+	
+	this.dottLayer = L.tileLayer(this.tileUrl, {
 		attribution: this.attribText
-	}).addTo(this.leafletMap);
+	}) ;
+	
 	var map = this;
-	users.on('added', function(e, user) {
+	
+	this.heatmapLayer  = new
+    L.TileLayer.HeatCanvas({},
+    		{
+    		'step': 0.3,
+    		'degree':HeatCanvas.LINEAR, 
+    		'opacity':0.5}
+    );
+	
+	this.dottLayer.addTo(this.leafletMap);
+	this.leafletMap.addLayer( this.heatmapLayer ) ;
+	
+	
+	// add layer control pad
+	var overlayMaps = {
+			 'Heatmap': this.heatmapLayer
+			 //, 'Dotts' : this.dottLayer
+			 };
+	
+	var controls = L.control.layers(null, overlayMaps, {collapsed: false});
+	//var controls = L.control.layers(overlayMaps, null , {collapsed: false});
+    controls.addTo(this.leafletMap);	
+
+   	users.on('added', function(e, user) {
 		map.addUser(user);
 	});
 	
@@ -78,7 +103,7 @@ Map.prototype.addUser = function(user) {
 				// remove placeholder marker.
 				console.log("Removing placeholder marker in favor of myMarker" ) ;
 				
-				this.leafletMap.removeLayer( useMarker ) ;
+				this.leafletMap.removeLayer( userMarker ) ;
 			}
 			
 			this.myMarker = new L.Marker( user.coordinate(), {icon: customIcon, draggable: true }) ; 
@@ -95,6 +120,8 @@ Map.prototype.addUser = function(user) {
 			} );
 			
 			this.myMarker.addTo(this.leafletMap).bindPopup( popuptext ) ;
+			//this.myMarker.addTo( this.dottLayer).bindPopup(popupText);
+			
 			this.zoomTo( user.coordinate() ) ;
 			if( showPopup ) {
 				this.myMarker.openPopup();
@@ -109,10 +136,19 @@ Map.prototype.addUser = function(user) {
 			var userMarker = this.markers[user.data.uuid] ;
 			if( userMarker == null ) {
 				userMarker = new L.Marker( user.coordinate()).addTo(this.leafletMap);
+				//userMarker = new L.Marker( user.coordinate()).addTo( this.dottLayer) ;
+				
 				this.markers[user.data.uuid] = userMarker ;
 			}
+			
+			// add user to heatmap with value of 20 just for fun.
+		    this.heatmapLayer.pushData( user.coordinate().lat, user.coordinate().lng, 20);
+		    
 		}
 	}
+	
+
+	
 
 }
 
