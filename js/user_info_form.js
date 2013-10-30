@@ -424,7 +424,7 @@ UserInfoForm.prototype.getSurveyHtml = function( user ) {
 
 	var gidn = 10 ;
 	var gids = this.getGids();
-	for( var i in gids ) {
+	for( var i = 0; i < gids.length; i++ ) {
 		var gid = gids[i];
 		text += '<div class="tablerow"> \
 			<div class="formlabel">' + gid + '</div> \
