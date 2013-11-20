@@ -14,7 +14,7 @@ class DottifyManager {
 	public function listusers() {
 		// $this->showSession() ;
 		$sql = "select u.id, u.uuid, u.refid, u.ver, u.thisver, u.username, u.created, u.modified, u.refuser, u.refuserid, u.email, u.zipcode, ";
-		$sql .= " u.countrycode, u.usertype, u.userstatus, u.userclass, u.mecon, u.userip, u.staylogged, c.latitude, c.longitude, c.usersetloc ";
+		$sql .= " u.countrycode, u.usertype, u.userstatus, u.userclass, u.mecon, u.userip, u.staylogged, c.latitude, c.longitude, c.usersetloc, u.notes ";
 		$sql .= "FROM user u left outer join usercache c on u.id = c.id WHERE u.ver = 0 ORDER BY u.created";
 		try {
 			$db = $this->getConnection ();
@@ -37,7 +37,7 @@ class DottifyManager {
 	
 	public function getUserByUuid($uuid) {
 		$sql = "select u.id, u.uuid, u.refid, u.ver, u.thisver, u.username, u.created, u.modified, u.refuser, u.refuserid, u.email, u.zipcode, ";
-		$sql .= " u.countrycode, u.usertype, u.userstatus, u.userclass, u.mecon, u.userip, u.staylogged, c.latitude, c.longitude, c.usersetloc ";
+		$sql .= " u.countrycode, u.usertype, u.userstatus, u.userclass, u.mecon, u.userip, u.staylogged, c.latitude, c.longitude, c.usersetloc, u.notes ";
 		$sql .= "FROM user u left outer join usercache c on u.id = c.id WHERE u.uuid = :uuid AND u.ver = 0";
 		
 		// $sql = "SELECT * FROM user WHERE uuid=:uuid and ver = 0";
@@ -77,7 +77,7 @@ class DottifyManager {
 		$id = intval($id);
 		
 		$sql = "select u.id, u.uuid, u.refid, u.ver, u.thisver, u.username, u.created, u.modified, u.refuser, u.refuserid, u.email, u.zipcode, ";
-		$sql .= " u.countrycode, u.usertype, u.userstatus, u.userclass, u.mecon, u.userip, u.staylogged ";
+		$sql .= " u.countrycode, u.usertype, u.userstatus, u.userclass, u.mecon, u.userip, u.staylogged, u.notes ";
 		$sql .= " FROM user u WHERE u.id = :id AND u.ver = :ver";
 		
 		error_log ( "get user by id: $id ver: $ver \n", 3, '/var/tmp/php.log' );
@@ -397,7 +397,7 @@ class DottifyManager {
 		$user->userip = $userip;
 		
 		$sql = "UPDATE user	set modified = :modified, thisver = :thisver, zipcode = :zipcode, countrycode = :countrycode, mecon = :mecon, username = :username, email = :email, ";
-		$sql .= " userclass = :userclass, userstatus = :userstatus, userip = :userip, staylogged = :staylogged ";
+		$sql .= " userclass = :userclass, userstatus = :userstatus, userip = :userip, staylogged = :staylogged, notes = :notes";
 		if( $cryptpass != null ) {
 			$sql .= ", password = :password ";
 		}
@@ -418,6 +418,8 @@ class DottifyManager {
 			$stmt->bindParam ( "userstatus", $user->userstatus, PDO::PARAM_INT);
 			$stmt->bindParam ( "userip", $user->userip );
 			$stmt->bindParam ( "staylogged", $user->staylogged, PDO::PARAM_INT );
+			$stmt->bindParam ( "notes", $this->getProp ( $user, "notes", null ) );
+			
 			if( $cryptpass != null ) {
 				$stmt->bindParam ( "password", $cryptpass );
 			}
