@@ -157,7 +157,8 @@ Map.prototype.addUser = function(user) {
 					userMarker = new L.Marker( user.coordinate(), {icon: tdorIcon }) ; 
 					this.markers[user.data.uuid] = userMarker ;
 					//userMarker.addTo(this.leafletMap).bindPopup( user.data.notes ) ;
-					userMarker.addTo(this.tdorLayer).bindPopup( user.data.notes ) ;
+					var popuptext = user.data.notes.replace(/--/g, "<br/>")
+					userMarker.addTo(this.tdorLayer).bindPopup( popuptext, { maxHeight: 350 , minWidth: 400 } ) ;
 					
 	
 				}
