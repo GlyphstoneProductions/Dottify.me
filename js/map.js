@@ -17,7 +17,7 @@ var Map = function(mapDivId, users) {
 		attribution: this.attribText
 	}) ;
 	
-	this.tdorLayer = new L.LayerGroup();
+	//this.tdorLayer = new L.LayerGroup();
 	
 	var map = this;
 	
@@ -30,14 +30,14 @@ var Map = function(mapDivId, users) {
     );
 	
 	this.dottLayer.addTo(this.leafletMap);
-	this.tdorLayer.addTo(this.leafletMap);
+	//this.tdorLayer.addTo(this.leafletMap);
 	this.leafletMap.addLayer( this.heatmapLayer ) ;
 	
 	
 	// add layer control pad
 	var overlayMaps = {
-			 'Heatmap': this.heatmapLayer,
-			 'TDOR': this.tdorLayer
+			 'Heatmap': this.heatmapLayer
+			 // , 'TDOR': this.tdorLayer
 			 //, 'Dotts' : this.dottLayer
 			 };
 	
@@ -74,6 +74,7 @@ Map.prototype.addUser = function(user) {
 	    popupAnchor:  [5, -108] // point from which the popup should open relative to the iconAnchor
 	});
 	
+	/*
 	var tdorIcon = L.icon({
 	    iconUrl: 'images/pintdor.png' ,
 	    shadowUrl: 'images/pinshadow.png',
@@ -84,7 +85,7 @@ Map.prototype.addUser = function(user) {
 	    shadowAnchor: [-5, 42],  // the same for the shadow
 	    popupAnchor:  [5, -108] // point from which the popup should open relative to the iconAnchor
 	});
-	
+	*/
 	
 	var popuptext = "" ;
 	var showPopup = false ;
@@ -150,6 +151,7 @@ Map.prototype.addUser = function(user) {
 		if (user.hasCoordinate()) {
 			
 			if( user.data.usertype == 3 ) {
+				/*
 				// tdor marker
 				var userMarker = this.markers[user.data.uuid] ;
 				if( userMarker == null ) {
@@ -159,9 +161,8 @@ Map.prototype.addUser = function(user) {
 					//userMarker.addTo(this.leafletMap).bindPopup( user.data.notes ) ;
 					var popuptext = user.data.notes.replace(/--/g, "<br/>")
 					userMarker.addTo(this.tdorLayer).bindPopup( popuptext, { maxHeight: 350 , minWidth: 400 } ) ;
-					
-	
 				}
+				*/
 			} else {
 				//	console.log( "add user type: " + user.data.type)
 				var userMarker = this.markers[user.data.uuid] ;
