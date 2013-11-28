@@ -6,6 +6,9 @@ var STARTING_ZOOM = 3;
 
 var Map = function(mapDivId, users) {
 	
+	this.me = null ;
+	this.myMarker = null ;
+	this.users = users ;
 	this.markers = {} ;
 	this.mapDivId = mapDivId;
 	this.attribText = 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://cloudmade.com">CloudMade</a>';
@@ -18,6 +21,7 @@ var Map = function(mapDivId, users) {
 	}) ;
 	
 	//this.tdorLayer = new L.LayerGroup();
+	this.myRefLayer = new L.LayerGroup() ;
 	
 	var map = this;
 	
@@ -31,12 +35,14 @@ var Map = function(mapDivId, users) {
 	
 	this.dottLayer.addTo(this.leafletMap);
 	//this.tdorLayer.addTo(this.leafletMap);
+	this.myRefLayer.addTo(this.leafletMap);
 	this.leafletMap.addLayer( this.heatmapLayer ) ;
 	
 	
 	// add layer control pad
 	var overlayMaps = {
 			 'Heatmap': this.heatmapLayer
+			 , 'My Refs': this.myRefLayer
 			 // , 'TDOR': this.tdorLayer
 			 //, 'Dotts' : this.dottLayer
 			 };
@@ -48,8 +54,7 @@ var Map = function(mapDivId, users) {
    	users.on('added', function(e, user) {
 		map.addUser(user);
 	});
-	
-	this.myMarker = null ;
+
 };
 
 Map.prototype.removeMyMarker = function() {
@@ -114,6 +119,7 @@ Map.prototype.addUser = function(user) {
 	
 	var theMap = this ;
 	if( user.isMe ) {
+		this.me = user ;
 		if (user.hasCoordinate()) {
 			var userMarker = this.markers[user.data.uuid] ;
 			if( userMarker != null ) {
@@ -144,6 +150,7 @@ Map.prototype.addUser = function(user) {
 				this.myMarker.openPopup();
 			}
 			
+			this.loadMyRefUsers( user.data.id, this.users, this.myRefLayer )
 		} else {
 			// TODO: Alert user that they do not have a coordinate and should input zip or choose alternative zip - or report zip missmatch 
 		}
@@ -177,12 +184,43 @@ Map.prototype.addUser = function(user) {
 
 			}
 		    this.heatmapLayer.pushData( user.coordinate().lat, user.coordinate().lng, 20);
+		    
+		    // if this user was referred by me, add it to the refs layer with their personal pin.
+		    if( user.data.refuser == this.me.data.id) {
+		    	this.createRefUserPin( user, this.myRefLayer ) ;
+		    }
 		}
 	}
-	
 
-	
+}
 
+Map.prototype.loadMyRefUsers = function( refid, users, myRefsLayer ) {
+	
+	for( var n = 0; n < users.length; n++ ) {
+		var user = users[n] ;
+		if( user.data.refuser == refid) {
+			
+			this.createRefUserPin( user, myRefsLayer ) ;
+
+		}
+	}
+}
+
+Map.prototype.createRefUserPin = function( user, myRefsLayer ) {
+	var customIcon = L.icon({
+	    iconUrl: 'images/' + user.data.mecon ,
+	    shadowUrl: 'images/pinshadow.png',
+
+	    iconSize:     [50, 115], // size of the icon
+	    shadowSize:   [54, 38], // size of the shadow
+	    iconAnchor:   [22, 115], // point of the icon which will correspond to marker's location
+	    shadowAnchor: [-5, 42],  // the same for the shadow
+	    popupAnchor:  [5, -108] // point from which the popup should open relative to the iconAnchor
+	});
+	
+	var refmarker = new L.Marker( user.coordinate(), {icon: customIcon }) ; 
+	
+	refmarker.addTo(myRefsLayer) ;
 }
 
 /*
