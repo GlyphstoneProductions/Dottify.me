@@ -32,6 +32,15 @@
 	position: relative ;
 	text-align: center;
 }
+
+#maincontent {
+	margin: auto;
+	max-width:800px ;
+	min-height: 600px;
+	position: relative ;
+	text-align: left;
+}
+
 #userinfo {
 	position: relative ;
 	left:0px ;
