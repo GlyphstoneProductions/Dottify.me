@@ -22,7 +22,9 @@ UsersCollection.prototype.loadAll = function() {
 	console.log('begin loading allusers ' ) ;
 	return $.get('api/user').done(function(response){
 		console.log('get allusers return' ) ;
-		return $.each(JSON.parse(response).elements, function(k, user) {
+		//return $.each(JSON.parse(response).elements, function(k, user) {
+		// We are now returning actual JSON instead of json encoded text...
+		return $.each(response.elements, function(k, user) {
 			collection.add(new User(user), false); // do not overwrite a user that is already in the collection
 		});
 	});

@@ -5,65 +5,79 @@
  * @author breanna
  *
  */
-require_once "User.php";
+
+require_once "model/User.php";
+require_once "model/UserCache.php";
+require_once "model/Zipcode.php";
+require_once "model/Incident.php";
+require_once "model/Comment.php";
+
 require_once "Validation.php";
-require_once "Zipcode.php";
-require_once "UserCache.php";
+
 require_once "UserSessionInfo.php";
+require_once "dao/DaoManager.php" ;
+require_once "MetadataManager.php" ;
+require_once "Tuple.php" ;
+
+
+use Dottify\dao\DaoManager ;
+use Dottify\model\User ;
+use Dottify\model\UserCache ;
+use Dottify\model\Zipcode ;
+use Dottify\model\Incident;
+use Dottify\model\Comment;
+
 class DottifyManager {
-	public function listusers() {
-		// $this->showSession() ;
-		$sql = "select u.id, u.uuid, u.refid, u.ver, u.thisver, u.username, u.created, u.modified, u.refuser, u.refuserid, u.email, u.zipcode, ";
-		$sql .= " u.countrycode, u.usertype, u.userstatus, u.userclass, u.mecon, u.userip, u.staylogged, c.latitude, c.longitude, c.usersetloc, u.notes ";
-		$sql .= "FROM user u left outer join usercache c on u.id = c.id WHERE u.ver = 0 ORDER BY u.created";
-		try {
-			$db = $this->getConnection ();
-			$stmt = $db->query ( $sql );
-			$users = $stmt->fetchAll ( PDO::FETCH_OBJ );
-			$db = null;
-			$visits = $this->getVisits ();
-			$usersobj = new Users ();
-			$usersobj->elements = $users;
-			return $usersobj;
-		} catch ( PDOException $e ) {
-			$message = $e->getMessage ();
-			return array (
-					"Error" => array (
-							"text" => $message 
-					) 
-			);
+	public function listusers($offset, $limit, $preds, $order) {
+		
+		$offset = (is_null($offset))? 0 : $offset ;
+		$limit = (is_null($limit))? 1000 : $limit ;
+		
+		// Fall back to basic list users behavior.  If preds is specified, caller is responsible for predicates.
+		if( is_null($preds) || count($preds) == 0 ) {
+			$preds = Tuple::parseTriTuple("ver|=|0") ;
 		}
+		
+		$mgr = DaoManager::getInstance() ;
+		$dao = $mgr->getDaoByName( "user") ;
+		
+		$result = $dao->query( $offset, $limit, $preds, $order ) ;
+		
+		return $result ;
+
 	}
 	
 	public function getUserByUuid($uuid) {
-		$sql = "select u.id, u.uuid, u.refid, u.ver, u.thisver, u.username, u.created, u.modified, u.refuser, u.refuserid, u.email, u.zipcode, ";
-		$sql .= " u.countrycode, u.usertype, u.userstatus, u.userclass, u.mecon, u.userip, u.staylogged, c.latitude, c.longitude, c.usersetloc, u.notes ";
-		$sql .= "FROM user u left outer join usercache c on u.id = c.id WHERE u.uuid = :uuid AND u.ver = 0";
 		
-		// $sql = "SELECT * FROM user WHERE uuid=:uuid and ver = 0";
-		try {
-			$db = $this->getConnection ();
-			$stmt = $db->prepare ( $sql );
-			$stmt->bindParam ( "uuid", $uuid );
-			$stmt->execute ();
-			$user = $stmt->fetchObject ( "User" );
-			//$visits = $this->getVisits ();
-			// $user->visits = $visits;
-			$influence = $this->getMyInfluence( $uuid, 1);
-			$user->refcount = $influence["refcount"];
-			$user->refrank = $influence["rank"] ;
-			$user->numOpenQuestions = $this->getNumOpenQuestions( $uuid );
-			$user->password = ""; // blank for security
-			$db = null;
-			return $user;
-		} catch ( PDOException $e ) {
-			$message = $e->getMessage ();
-			return array (
-					"Error" => array (
-							"text" => $message 
-					) 
-			);
+		
+		$offset = 0; 
+		$limit = 1 ;
+		$preds = Tuple::parseTriTuple("uuid|=|$uuid;ver|=|0") ;
+		$order = null ;
+		
+		$mgr = DaoManager::getInstance() ;
+		$dao = $mgr->getDaoByName( "user") ;
+		
+		$result = $dao->query( $offset, $limit, $preds, $order ) ;
+		
+		if( count($result->elements) > 0 ) {
+			return $result->elements[0] ;
+		} else { 
+			return false ;
 		}
+	
+		
+		/*
+		$mgr = DaoManager::getInstance() ;
+		$dao = $mgr->getDaoByName( "user") ;
+		
+		$user = $dao->getByUuid( $uuid ) ;
+		if( $user ) {
+			//$user = $dao->get($user->id, 0);
+		}
+		return $user ;
+		*/
+	
 	}
 	
 	/** 
@@ -74,36 +88,87 @@ class DottifyManager {
 	 */
 	public function getUserById($id, $ver) {
 		
-		$id = intval($id);
+		$mgr = DaoManager::getInstance() ;
+		$dao = $mgr->getDaoByName( "user") ;
+		$user = $dao->get( $id, $ver ) ;
+		return $user ;
 		
-		$sql = "select u.id, u.uuid, u.refid, u.ver, u.thisver, u.username, u.created, u.modified, u.refuser, u.refuserid, u.email, u.zipcode, ";
-		$sql .= " u.countrycode, u.usertype, u.userstatus, u.userclass, u.mecon, u.userip, u.staylogged, u.notes ";
-		$sql .= " FROM user u WHERE u.id = :id AND u.ver = :ver";
-		
-		error_log ( "get user by id: $id ver: $ver \n", 3, '/var/tmp/php.log' );
-		try {
-			$db = $this->getConnection ();
-			$stmt = $db->prepare ( $sql );
-			$stmt->bindParam ( "id", $id , PDO::PARAM_INT);
-			$stmt->bindParam ( "ver", $ver , PDO::PARAM_INT);
-			$stmt->execute ();
-			$user = $stmt->fetchObject ( "User" );
-			$modified = $user->modified ;
-			$ver = $user->ver ;
-			$thisver = $user->thisver ;
-			error_log ( "got user user modified $modified, $ver, $thisver \n", 3, '/var/tmp/php.log' );
-			$db = null;
-			return $user;
-		} catch ( PDOException $e ) {
-			$message = $e->getMessage ();
-			error_log ( "Error getting user $id/$ver err= $message \n", 3, '/var/tmp/php.log' );
-			return array (
-					"Error" => array (
-							"text" => $message
-					)
-			);
-		}
+	
 	}
+	
+	public function getUserByRefid($refid) {
+		$offset = 0;
+		$limit = 1 ;
+		$preds = Tuple::parseTriTuple("refid|=|$refid;ver|=|0") ;
+		$order = null ;
+		
+		$mgr = DaoManager::getInstance() ;
+		$dao = $mgr->getDaoByName( "user") ;
+		
+		$result = $dao->query( $offset, $limit, $preds, $order ) ;
+			
+		if( count($result->elements) > 0 ) {
+			return $result->elements[0] ;
+		} else {
+			return false ;
+		}
+		
+	
+	}
+	
+	
+	public function getUserByEmail($email ) {
+		
+		$offset = 0;
+		$limit = 1 ;
+		$preds = Tuple::parseTriTuple("email|=|$email;ver|=|0") ;
+		$order = null ;
+		
+		$mgr = DaoManager::getInstance() ;
+		$dao = $mgr->getDaoByName( "user") ;
+		
+		$result = $dao->query( $offset, $limit, $preds, $order ) ;
+			
+		if( count($result->elements) > 0 ) {
+			return $result->elements[0] ;
+		} else {
+			return false ;
+		}
+
+	}
+	
+	public function loginUser($username, $password) {
+		$cryptpass = md5($password) ;
+		
+		
+		$offset = 0;
+		$limit = 1 ;
+		$preds = Tuple::parseTriTuple("username|=|$username;password|=|$cryptpass;ver|=|0") ;
+		$order = null ;
+		
+		$mgr = DaoManager::getInstance() ;
+		$dao = $mgr->getDaoByName( "user") ;
+		
+		$result = $dao->query( $offset, $limit, $preds, $order ) ;
+
+		if( count($result->elements) > 0 ) {
+			$user = $result->elements[0] ;
+			$uuid = $user->uuid;
+			return $uuid ;
+		} else {
+			return false ;
+		}
+		
+	
+	}
+	
+	/**
+	 * Find out how many users the specified user has influced to join
+	 * TODO: make it a multi-level recursive query.
+	 * @param unknown $uuid
+	 * @param unknown $depth
+	 * @return multitype:Ambigous <NULL, number> number
+	 */
 	
 	public function getMyInfluence( $uuid, $depth ) {
 		$influencers = $this->getInfluencers() ;
@@ -140,6 +205,10 @@ class DottifyManager {
 		return $opencount ;
 	}
 	
+	/**
+	 * Get report of users who have referred other users (influencers)
+	 * @return multitype:|NULL
+	 */
 	public function getInfluencers() {
 		
 		$sql = "SELECT u.uuid, u.id, u.created, u.username, u.zipcode, count(*) as 'refcount' " .
@@ -159,206 +228,31 @@ class DottifyManager {
 		
 	}
 	
-	public function findOrphanUser( $user ) {
-		$zipcode = $user->zipcode ;
-		
-		$sql = "select uuid from user where zipcode = :zipcode and userstatus = 0 order by id limit 1" ;
-		try {
-			$db = $this->getConnection ();
-			$stmt = $db->prepare ( $sql );
-			$stmt->bindParam ( "zipcode", $zipcode );
-			$stmt->execute ();
-			$uuid = $stmt->fetchColumn() ;
-			$db = null;
-			
-			if( $uuid ) {
-				error_log ( "orphan found $uuid \n", 3, '/var/tmp/php.log' );
-				$userout = $this->getUserByUuid( $uuid ) ;
-				if( $userout ) {
-					$userout->userstatus = 1 ;
-					$userout->userclass = $user->userclass ;
-					$userout->mecon = $user->mecon ;
-					$userout = $this->updateUser( $userout, true ) ;	// norev
-				}
-				return $userout ;
-			}
-		} catch ( PDOException $e ) {
-			$message = $e->getMessage ();
-			error_log ( "error finding orphan $message \n", 3, '/var/tmp/php.log' );
-		}
-		return false ;
-		
-	}
 	
-	public function getUserByRefid($refid) {
-		$sql = "SELECT * FROM user WHERE refid=:refid and ver = 0";
-		try {
-			$db = $this->getConnection ();
-			$stmt = $db->prepare ( $sql );
-			$stmt->bindParam ( "refid", $refid );
-			$stmt->execute ();
-			$user = $stmt->fetchObject ( "User" );
-			$db = null;
-			return $user;
-		} catch ( PDOException $e ) {
-			$message = $e->getMessage ();
-			return array (
-					"Error" => array (
-							"text" => $message 
-					) 
-			);
-		}
-	}
-	
-	
-	public function getUserByEmail($email ) {
-		$sql = "SELECT uuid FROM user WHERE email=:email and ver = 0";
-		try {
-			$db = $this->getConnection ();
-			$stmt = $db->prepare ( $sql );
-			$stmt->bindParam ( "email", $email );
-			$stmt->execute ();
-			$uuid = $stmt->fetchColumn();
-			$db = null;
-			return $uuid;
-		} catch ( PDOException $e ) {
-			$message = $e->getMessage ();
-			return array (
-					"Error" => array (
-							"text" => $message
-					)
-			);
-		}
-	}
-	
-	public function loginUser($username, $password) {
-		$cryptpass = md5($password) ;
-		$sql = "SELECT uuid FROM user WHERE username=:username and password = :cryptpass and ver = 0";
-		try {
-			$db = $this->getConnection ();
-			$stmt = $db->prepare ( $sql );
-			$stmt->bindParam ( "username", $username );
-			$stmt->bindParam ( "cryptpass", $cryptpass );
-			$stmt->execute ();
-			$uuid = $stmt->fetchColumn();
-			$db = null;
-			return $uuid;
-		} catch ( PDOException $e ) {
-			$message = $e->getMessage ();
-			return array (
-					"Error" => array (
-							"text" => $message
-					)
-			);
-		}
-	}
+
 	/**
 	 * Create a new user from scratch.
-	 * 
+	 * we are deprecating the adoption logic now.
 	 * @param unknown $user        	
 	 * @return unknown multitype:multitype:unknown
 	 */
-	public function createUser($user, $adopt) {
-		$created = $date = date ( 'Y-m-d H:i:s' );
-		error_log ( "adduser $created \n", 3, '/var/tmp/php.log' );
+	public function createUser( $obj, $adopt) {
+			
+		// TODO: verify no duplicate name or email
 		
-		if( $adopt ) {
-			$adoptee = $this->findOrphanUser( $user) ;
-			if( $adoptee ) {
-				return $adoptee ;
-			}
-		}
-	
+		$user = new User() ;
+		$user->load($obj) ;
 		$userip = $_SERVER ['REMOTE_ADDR'];
+		$user->userip = $userip ;
 		
-		$uuid = uniqid ( "dottify", true ); // more entropy!
-		$refid = md5 ( $uuid );
-		// $created = $date = date('Y-m-d H:i:s');
-		// add to object
-		$user->uuid = $uuid;
-		$user->refid = $refid;
-		$user->created = $created;
-		$user->modified = $created;
-		$user->ver = 0; // the current entity is always ver 0 (with thisver = 1)
-		$user->thisver = 1;
-		$user->usertype = 0; // default user type
-		$user->userstatus = 1; // status registered for now
-	
-		$cryptpass = null;
-		$password = $this->getProp ( $user, "password", null );
-		if (! is_null ( $password )) {
-			$cryptpass = md5 ( $password );
-		}
+		$mgr = DaoManager::getInstance() ;
+		$dao = $mgr->getDaoByName( "user") ;
 		
-		$user->refuser = 0;
-		$refuserid = $this->getProp ( $user, "refuserid", null );
-		if (! empty ( $refuserid )) {
-			$referringuser = $this->getUserByRefid ( $this->getProp ( $user, "refuserid", null ) );
-			if (! is_null ( $referringuser )) {
-				$user->refuser = intval ( $referringuser->id );
-			}
-		}
+		$result = $dao->create( $user ) ;
+		return $result ;
 		
-		$sql = "INSERT INTO user (uuid, refid, created, modified, ver, thisver, refuserid, refuser, zipcode, countrycode, mecon, username, password, email, userstatus, usertype, userclass, userip, staylogged) ";
-		$sql .= "VALUES (:uuid, :refid, :created, :modified, 0, 1, :refuserid, :refuser, :zipcode, :countrycode, :mecon, :username, :password, :email, :userstatus, :usertype, :userclass, :userip, :staylogged)";
-		try {
-			$db = $this->getConnection ();
-			$stmt = $db->prepare ( $sql );
-			$stmt->bindParam ( "uuid", $user->uuid );
-			$stmt->bindParam ( "refid", $user->refid ); // my refid
-			$stmt->bindParam ( "created", $user->created );
-			$stmt->bindParam ( "modified", $user->modified );
-			// $stmt->bindParam("ver", $user->year);
-			// $stmt->bindParam("thisver", $user->description);
-			$stmt->bindParam ( "refuserid", $user->refuserid ); // hashed refid
-			$stmt->bindParam ( "refuser", $user->refuser, PDO::PARAM_INT ); // integer refid
-			$stmt->bindParam ( "zipcode", $this->getProp ( $user, "zipcode", null ) );
-			$stmt->bindParam ( "countrycode", $this->getProp( $user, "countrycode", "US")) ;			
-			$stmt->bindParam ( "mecon", $user->mecon ) ;
-			$stmt->bindParam ( "username", $this->getProp ( $user, "username", null ) );
-			$stmt->bindParam ( "password", $cryptpass );
-			$stmt->bindParam ( "email", $this->getProp ( $user, "email", null ) );
-			$stmt->bindParam ( "userstatus", $user->userstatus, PDO::PARAM_INT );
-			$stmt->bindParam ( "usertype", $user->usertype, PDO::PARAM_INT );
-			$stmt->bindParam ( "userclass", $user->userclass, PDO::PARAM_INT );
-			$stmt->bindParam ( "userip", $userip );
-			$stmt->bindParam ( "staylogged", $user->staylogged, PDO::PARAM_INT );
-			$stmt->execute ();
-			error_log ( 'useradded \n', 3, '/var/tmp/php.log' );
-			$newid = intval ( $db->lastInsertId () );
-			$user->id = $newid;
-			error_log ( "new user id $newid\n", 3, '/var/tmp/php.log' );
-			
-			$db = null;
-			$user->password = ""; // for security
-			                       
-			// look up the lat/long of the zip and compute a random offset as appropriate (+- .015 degrees lat and long ) Maybe less for latitude..
-			$usercache = $this->createUserCache ( $user->id, $user->countrycode, $user->zipcode, $userip );
-			$user->latitude = $usercache->latitude;
-			$user->longitude = $usercache->longitude;
-			$user->locupdate = true ;	// flag front end that location has been set/updated
-			
-			return $user;
-		} catch ( PDOException $e ) {
-			$message = $e->getMessage ();
-			error_log ( "Error creating user: $message... \n", 3, '/var/tmp/php.log' );
-			return array (
-					"Error" => array (
-							"text" => $message 
-					) 
-			);
-		}
 	}
-	
-	private function getProp($obj, $propname, $default) {
-		error_log ( "get property $propname \n", 3, '/var/tmp/php.log' );
-		if (property_exists ( $obj, $propname )) {
-			return $obj->$propname;
-		} else {
-			error_log ( "prop $propname not found \n", 3, '/var/tmp/php.log' );
-			return $default;
-		}
-	}
+
 	
 	/**
 	 * modify user information
@@ -368,268 +262,56 @@ class DottifyManager {
 	 * @param unknown $user        	
 	 * @return unknown multitype:multitype:unknown
 	 */
-	public function updateUser($user, $norev) {
+	public function updateUser($obj, $norev) {
+		
+		// TODO: VERIFY NO duplicate user name or email
 		
 		$now = $date = date ( 'Y-m-d H:i:s' );
 		error_log ( "updateuser $now  norev=$norev\n", 3, '/var/tmp/php.log' );
 		
+		$user = new User() ;
+		$user->load($obj) ;
 		$userip = $_SERVER ['REMOTE_ADDR'];
+		$user->userip = $userip ;
+		
+		$mgr = DaoManager::getInstance() ;
+		$dao = $mgr->getDaoByName( "user") ;
+		
+		$result = $dao->update( $user, $norev ) ;
+		return $result ;
+		
 
-		// for reference comparisons
-		$olduser = $this->getUserById( $user->id, 0) ;
-		
-		if (!$norev) {
-			error_log ( "save user version \n", 3, '/var/tmp/php.log' );
-			$this->saveUserVersion ( $user );
-			$user->thisver = intval($user->thisver) + 1;
-		}
-		$cryptpass = null;
-		$password = $this->getProp ( $user, "password", null );
-		if (! is_null ( $password ) ) {
-			$password = trim( $password ) ;
-			if( strlen( $password ) > 0 ) {
-				$cryptpass = md5 ( $password );
-			}
-		}
-		
-		// error_log("Update pwd: $cryptpass   username: ") ;
-		$user->modified = $now;
-		$user->userip = $userip;
-		
-		$sql = "UPDATE user	set modified = :modified, thisver = :thisver, zipcode = :zipcode, countrycode = :countrycode, mecon = :mecon, username = :username, email = :email, ";
-		$sql .= " userclass = :userclass, userstatus = :userstatus, userip = :userip, staylogged = :staylogged, notes = :notes";
-		if( $cryptpass != null ) {
-			$sql .= ", password = :password ";
-		}
-		$sql .= "where uuid = :uuid and ver = 0 ";
-		try {
-			error_log ( "do update\n", 3, '/var/tmp/php.log' );
-			$db = $this->getConnection ();
-			$stmt = $db->prepare ( $sql );
-			$stmt->bindParam ( "uuid", $user->uuid );
-			$stmt->bindParam ( "modified", $user->modified );
-			$stmt->bindParam ( "thisver", $user->thisver, PDO::PARAM_INT );
-			$stmt->bindParam ( "zipcode", $user->zipcode );
-			$stmt->bindParam ( "countrycode", $this->getProp( $user, "countrycode", "US")) ;
-			$stmt->bindParam ( "mecon", $user->mecon ) ;			
-			$stmt->bindParam ( "username", $this->getProp ( $user, "username", null ) );
-			$stmt->bindParam ( "email", $this->getProp ( $user, "email", null ) );
-			$stmt->bindParam ( "userclass", $user->userclass, PDO::PARAM_INT );
-			$stmt->bindParam ( "userstatus", $user->userstatus, PDO::PARAM_INT);
-			$stmt->bindParam ( "userip", $user->userip );
-			$stmt->bindParam ( "staylogged", $user->staylogged, PDO::PARAM_INT );
-			$stmt->bindParam ( "notes", $this->getProp ( $user, "notes", null ) );
-			
-			if( $cryptpass != null ) {
-				$stmt->bindParam ( "password", $cryptpass );
-			}
-			// $stmt->bindParam ( "userstatus", $this->getProp( $user, "userstatus", PDO::PARAM_INT));		// criteria for setting user
-			// $stmt->bindParam("usertype", $this->getProp( $user, "usertype"));
-			$stmt->execute ();
-			error_log ( "user updated \n", 3, '/var/tmp/php.log' );
-			$db = null;
-			$user->password = ""; // for security
-			                       
-			error_log( "check for location change: ") ;
-			
-			if( $user->countrycode != $olduser->countrycode || $user->zipcode != $olduser->zipcode ) {
-				// if the country or zip has changed update.
-				// Even if user has customized their lat/long it will be reset.
-				$usercache = $this->updateUserCache( $user->id, $user->countrycode, $user->zipcode ) ;
-				$user->latitude = $usercache->latitude;
-				$user->longitude = $usercache->longitude;
-				$user->usersetloc = 1 ;	// flag front end that location has been set/updated
-				
-			} else {
-				// fetch cache (lat/long) for the record
-				$usercache = $this->getUserCache( $user->id ) ;
-				$user->latitude = $usercache->latitude;
-				$user->longitude = $usercache->longitude;
-				$user->usersetloc = $usercache->usersetloc ;	// flag front end that location has been set/updated
-			}
-			
-			return $user;
-		} catch ( PDOException $e ) {
-			$message = $e->getMessage ();
-			error_log ( "Error creating user: $message\n", 3, '/var/tmp/php.log' );
-			return array (
-					"Error" => array (
-							"text" => $message 
-					) 
-			);
-		}
 	}
 	
-	/**
-	 * save the current version of the user as ver = thisver
-	 *
-	 * @param unknown $user        	
-	 */
-	public function saveUserVersion($user) {
-		$sql = "INSERT INTO user( id, uuid, refid, ver, thisver, username, created, modified, refuser, ";
-		$sql .= "refuserid,  password, email, zipcode, countrycode, usertype, userstatus, userclass, mecon, userip, staylogged ) ";
-		$sql .= "SELECT u.id, u.uuid, u.refid, u.thisver, u.thisver, u.username, u.created, u.modified, u.refuser, ";
-		$sql .= "u.refuserid, u.password, u.email, u.zipcode, u.countrycode, u.usertype, u.userstatus, u.userclass, u.mecon, u.userip, u.staylogged from user u where u.uuid = :uuid and ver = 0";
-		try {
-			$db = $this->getConnection ();
-			$stmt = $db->prepare ( $sql );
-			$stmt->bindParam ( "uuid", $user->uuid );
-			$stmt->execute ();
-			error_log ( 'userversioned \n', 3, '/var/tmp/php.log' );
-			return $user;
-		} catch ( PDOException $e ) {
-			$message = $e->getMessage ();
-			error_log ( "Error creating user version: $message\n", 3, '/var/tmp/php.log' );
-			return array (
-					"Error" => array (
-							"text" => $message 
-					) 
-			);
-		}
-	}
-	
-	public function createUserCache($userid, $countrycode, $zipcode, $userip) {
-		error_log ( 'addusercache\n', 3, '/var/tmp/php.log' );
+	public function deleteUser( $uuid ) {
 		
-		$userCache = new UserCache ();
-		$userCache->id = $userid;
-		$userCache->lastip = $userip;
-		
-		$userCache = $this->calcUserLatLong( $userCache, $countrycode, $zipcode ) ;
-		
-				
-		$sql = "INSERT INTO usercache (id, lastip, latitude, longitude, usersetloc) ";
-		$sql .= "VALUES (:id, :lastip, :latitude, :longitude, 0 )";
-		try {
-			$db = $this->getConnection ();
-			$stmt = $db->prepare ( $sql );
-			$stmt->bindParam ( "id", intval($userCache->id), PDO::PARAM_INT );
-			$stmt->bindParam ( "lastip", $userCache->lastip ); // my refid
-			$stmt->bindParam ( "latitude", $userCache->latitude );
-			$stmt->bindParam ( "longitude", $userCache->longitude );
-			
-			$stmt->execute ();
-			
-			$db = null;
-			
-			return $userCache;
-		} catch ( PDOException $e ) {
-			$message = $e->getMessage ();
-			error_log ( "Error creating user: $message\n", 3, '/var/tmp/php.log' );
-			return array (
-					"Error" => array (
-							"text" => $message 
-					) 
-			);
-		}
-	}
-	
-	/**
-	 * rewrite the usercache if the zipcode has changed.
-	 * 
-	 * @param unknown $userid        	
-	 * @param unknown $zipcode        	
-	 * @param unknown $userip        	
-	 * @return UserCache multitype:multitype:unknown
-	 */
-	public function updateUserCache($userid, $countrycode, $zipcode) {
-		error_log ( 'updateusercache\n', 3, '/var/tmp/php.log' );
-		
-		$usercache = new UserCache() ;
-		$usercache = $this->calcUserLatLong( $usercache, $countrycode, $zipcode ) ;
-		
-		$this->updateUserLatLong( $userid, $usercache->latitude, $usercache->longitude, 0 );
-		return $usercache ;
-	}
-	
-	public function calcUserLatLong( $usercache, $countrycode, $zipcode ) {
-		
-		if( $countrycode == 'US' || $countrycode == 'CA') {
-		
-			$zipinfo = $this->getZipcodeInfo ( $countrycode, $zipcode );
-			if (!is_null ( $zipinfo )) {
-				$latitude = $zipinfo->latitude;
-				$longitude = $zipinfo->longitude;
-				$latoffset = - 0.015 + $this->getRandFloat ( 300 ); // +/- 0.015 degrees should be about 1 mile radius?
-				$longoffset = - 0.015 + $this->getRandFloat ( 200 );
 
-			}
+		$now = $date = date ( 'Y-m-d H:i:s' );
+		error_log ( "delete user $uuid at $now \n", 3, '/var/tmp/php.log' );
+	
+		$mgr = DaoManager::getInstance() ;
+		$dao = $mgr->getDaoByName( "user") ;
+		
+		$user = $dao->getByUuid( $uuid ) ;
+		if( $user ) {
+			$dao->delete( $user->id ) ;
+			return true ;
+		}
+		return false ;
+	
+		
+	}
+	
+
+	private function getProp($obj, $propname, $default) {
+		error_log ( "get property $propname \n", 3, '/var/tmp/php.log' );
+		if (property_exists ( $obj, $propname )) {
+			return $obj->$propname;
 		} else {
-			$country = $this->getCountry( $countrycode ) ;
-			if( !is_null( $country)) {
-				$latitude = $country->latitude;
-				$longitude = $country->longitude;
-				$latoffset = - 0.015 + $this->getRandFloat ( 600 );  // larger spread for countries
-				$longoffset = - 0.015 + $this->getRandFloat ( 600 );
-			}
-		}
-		
-		$usercache->latitude = $latitude + $latoffset;
-		$usercache->longitude = $longitude + $longoffset;
-		
-		return $usercache ;
-		
-	}
-	
-
-	public function getUserCache( $id ) {
-	
-		$sql = "SELECT * FROM usercache WHERE id = :id";
-		try {
-			$db = $this->getConnection ();
-			$stmt = $db->prepare ( $sql );
-			$stmt->bindParam ( "id", intval($id), PDO::PARAM_INT );
-			$stmt->execute ();
-			$obj = $stmt->fetchObject();
-			$db = null;
-			return $obj;
-		} catch ( PDOException $e ) {
-			$message = $e->getMessage ();
-			return array (
-					"Error" => array (
-							"text" => $message
-					)
-			);
-		}
-	
-	}
-	
-	public function updateUserPosition( $user ) {
-		$this->updateUserLatLong( $user->id, $user->latitude, $user->longitude, 1 ) ;
-		return $user ;
-	}
-	
-	public function updateUserLatLong( $userid, $latitude, $longitude, $usersetloc ) {
-		
-		$sql = "UPDATE usercache SET latitude = :latitude, longitude = :longitude, usersetloc = :usersetloc where id = :id ";
-		try {
-			$db = $this->getConnection ();
-			$stmt = $db->prepare ( $sql );
-			$stmt->bindParam ( "id", intval($userid), PDO::PARAM_INT );
-			$stmt->bindParam ( "latitude", $latitude );
-			$stmt->bindParam ( "longitude", $longitude );
-			$stmt->bindParam ( "usersetloc", $usersetloc, PDO::PARAM_INT);
-				
-			$stmt->execute ();
-			$db = null;
-
-		} catch ( PDOException $e ) {
-			$message = $e->getMessage ();
-			error_log ( "Error creating user: $message\n", 3, '/var/tmp/php.log' );
-			return array (
-					"Error" => array (
-							"text" => $message
-					)
-			);
+			error_log ( "prop $propname not found \n", 3, '/var/tmp/php.log' );
+			return $default;
 		}
 	}
-	
-	public function getRandFloat($max) {
-		$irnd = mt_rand ( 0, $max );
-		$rnd = ( double ) $irnd / 10000.00;
-		return $rnd;
-	}
-	
 	
 	public function addBaseSurvey($survey) {
 		$created = $date = date ( 'Y-m-d H:i:s' );
@@ -846,7 +528,9 @@ class DottifyManager {
 	}
 	
 	
+	
 	/**
+	 * * TODO: MOVE TO Geography utilty DAO.
 	 * get postal code (actually) by country (currently US and CA)
 	 * @param unknown $countrycode
 	 * @param unknown $zipcode
@@ -1210,6 +894,234 @@ class DottifyManager {
 		}		
 	}
 	
+	public function daoTest() {
+		
+		$mgr = DaoManager::getInstance() ;
+		$dao = $mgr->getDaoByName( "user") ;
+		$user = $dao->get( 745, 0 ) ;
+		//var_dump($user);
+
+		return $user;
+	}
+	
+	public function queryTest($offset, $limit, $preds, $order) {
+
+		$offset = (is_null($offset))? 0 : $offset ;
+		$limit = (is_null($limit))? 1000 : $limit ;
+				
+		$mgr = DaoManager::getInstance() ;
+		$dao = $mgr->getDaoByName( "user") ;
+		
+		$result = $dao->query( $offset, $limit, $preds, $order ) ;
+	
+		return $result;
+	}
+	
+	public function getModelMetadata( $modelName ) {
+		
+		$modelName = strtolower( $modelName ) ;
+		$model = null ;
+		switch( $modelName) {
+			case "user" :
+				$model = new User() ;
+				break ;
+				
+		}
+		
+		$response = "Model: $modelName does not exist" ;
+		if( !is_null($model) ) {
+			$response = $model->getMetadata() ;
+		} 
+		
+		return $response ;
+	}
+	
+	// -------------------------------------------------------------
+	// Incident
+	
+	public function getIncident( $id, $ver ) {
+		$mgr = DaoManager::getInstance() ;
+		$dao = $mgr->getDaoByName( "incident") ;
+		
+		$result = $dao->get( $id, $ver ) ;
+		return $result ;
+	}
+	
+	public function listIncidents( $offset, $limit, $preds, $order ) {
+		$offset = (is_null($offset))? 0 : $offset ;
+		$limit = (is_null($limit))? 1000 : $limit ;
+		
+		// Fall back to basic behavior.  If preds is specified, caller is responsible for predicates.
+		if( is_null($preds) || count($preds) == 0 ) {
+			$preds = Tuple::parseTriTuple("ver|=|0") ;
+		}
+		
+		$mgr = DaoManager::getInstance() ;
+		$dao = $mgr->getDaoByName( "incident") ;
+		
+		$result = $dao->query( $offset, $limit, $preds, $order ) ;
+		return $result ;
+		
+	}
+	
+	public function createIncident( $obj) {
+			
+		$incident = new Incident() ;
+		$incident->load($obj) ;
+		$userip = $_SERVER ['REMOTE_ADDR'];
+		$incident->userip = $userip ;
+	
+		$mgr = DaoManager::getInstance() ;
+		$dao = $mgr->getDaoByName( "incident") ;
+	
+		$result = $dao->create( $incident ) ;
+		return $result ;
+	
+	}
+	
+	
+	public function updateIncident( $obj, $norev) {
+			
+		$incident = new Incident() ;
+		$incident->load($obj) ;
+		$userip = $_SERVER ['REMOTE_ADDR'];
+		$incident->userip = $userip ;
+	
+		$mgr = DaoManager::getInstance() ;
+		$dao = $mgr->getDaoByName( "incident") ;
+	
+		$result = $dao->update( $incident, $norev ) ;
+		return $result ;
+	
+	}
+	
+	public function deleteIncident( $id ) {
+			
+		$mgr = DaoManager::getInstance() ;
+		$dao = $mgr->getDaoByName( "incident") ;
+	
+		$result = $dao->delete( $id ) ;
+		return $result ;
+	
+	}
+	
+	
+	// -----------------------------------------------
+	// Comment
+	
+	public function getComment( $id, $ver ) {
+		$mgr = DaoManager::getInstance() ;
+		$dao = $mgr->getDaoByName( "comment") ;
+	
+		$result = $dao->get( $id, $ver ) ;
+		return $result ;
+	}
+	
+	public function listComments( $offset, $limit, $preds, $order ) {
+		$offset = (is_null($offset))? 0 : $offset ;
+		$limit = (is_null($limit))? 1000 : $limit ;
+	
+		$mgr = DaoManager::getInstance() ;
+		$dao = $mgr->getDaoByName( "comment") ;
+	
+		$result = $dao->query( $offset, $limit, $preds, $order ) ;
+		return $result ;
+	
+	}
+	
+	public function createComment( $obj) {
+			
+		$comment = new Comment() ;
+		$comment->load($obj) ;
+	
+		$mgr = DaoManager::getInstance() ;
+		$dao = $mgr->getDaoByName( "comment") ;
+	
+		$result = $dao->create( $comment ) ;
+		return $result ;
+	
+	}
+	
+	
+	public function updateComment( $obj, $norev) {
+			
+		$comment = new Comment() ;
+		$comment->load($obj) ;
+		
+		$mgr = DaoManager::getInstance() ;
+		$dao = $mgr->getDaoByName( "comment") ;
+	
+		$result = $dao->update( $comment, $norev ) ;
+		return $result ;
+	
+	}
+	
+	public function deleteComment( $id ) {
+			
+		$mgr = DaoManager::getInstance() ;
+		$dao = $mgr->getDaoByName( "comment") ;
+	
+		$result = $dao->delete( $id ) ;
+		return $result ;
+	
+	}
+	
+	public function getRelType( $id ) {
+		$mgr = new MetadataManager() ;
+
+		$result = $mgr->getRelType( $id ) ;
+		return $result ;
+	}
+	
+	public function listRelTypes( $parent, $include, $norecurse ) {
+		
+		$mgr = new MetadataManager() ;
+		$result = $mgr->listRelTypes( $parent, $include, $norecurse) ;
+		return $result ;
+	
+	}
+	
+	public function listLinks( $offset, $limit, $origin, $direction, $reltype ) {
+		
+		$mgr = new MetadataManager() ;
+		if( is_null($origin)) {
+			return $mgr->listAllLinks( $offset, $limit, $reltype ) ;
+		} else {
+			return $mgr->listLinks( $offset, $limit, $origin, $direction, $reltype ) ;
+		}
+	}
+	
+	public function listLinkObjs( $offset, $limit, $origin, $direction, $reltype, $withlink ) {
+	
+		$mgr = new MetadataManager() ;
+		if( is_null($origin)) {
+			return "origin required\n";
+		} else {
+			return $mgr->listLinkObjs( $offset, $limit, $origin, $direction, $reltype, $withlink ) ;
+		}
+	}
+	
+	public function getLink( $id ) {
+		$mgr = new MetadataManager() ;
+		return $mgr->getLink($id);
+	}
+	
+	public function createLink( $data ) {
+		$mgr = new MetadataManager() ;
+		return $mgr->createLink( $data ) ;
+	}
+	
+	/*
+	 * 
+	 * updateStats
+	 
+	 comments by user
+	 
+	 comments for subject
+	 childComments
+	 */
+	
+	
 	// =====================================================================================================================
 	
 	protected function getSessionVar($varname, $defval) {
@@ -1233,6 +1145,7 @@ class DottifyManager {
 		$visits = $_SESSION ['count'];
 		return $visits;
 	}
+	
 	protected function showSession() {
 		$visits = $this->getVisits ();
 		echo "visits: $visits\n";
@@ -1240,6 +1153,7 @@ class DottifyManager {
 	
 
 	protected function getConnection() {
+		
 		$dbinfo = getenv ( "DOTTIFY_DB" );
 		// echo "dbinfo: $dbinfo\n" ;
 		$connect = explode ( ':', $dbinfo );
@@ -1249,6 +1163,7 @@ class DottifyManager {
 		$dbname = $connect [3];
 		
 		$dbh = new PDO ( "mysql:host=$dbhost;dbname=$dbname", $dbuser, $dbpass );
+		
 		$dbh->setAttribute ( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
 		return $dbh;
 	}

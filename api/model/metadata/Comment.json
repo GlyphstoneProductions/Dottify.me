@@ -1,0 +1,65 @@
+{
+  "columns": {
+    "id": {
+      "label": "id",
+      "datatype": "INT",
+      "key": "1",
+      "update": false 
+    },
+    "thisver": {
+      "label": "thisver",
+      "datatype": "INT",
+      "key": "1",
+      "cinst" : "ONLY" 
+    },
+    "created": {
+      "label": "created",
+      "datatype": "DATETIME",
+      "cinst" : "ONLY"
+    },
+    "modified": {
+      "label": "modified",
+      "datatype": "DATETIME",
+      "cinst" : "ONLY"
+    },
+    "classid": {
+      "label" : "classid",
+      "datatype": "INT",
+      "cinst" : "ONLY"
+    },
+    "classname": {
+      "label" : "classname",
+      "readonly" : true
+    },
+    "status" : {
+      "label": "status",
+      "datatype": "INT",
+      "cinst": "ONLY"
+    },
+    "statusname" : {
+      "label" : "status name",
+      "readonly" : true
+    },
+    "userid": {
+      "label": "userid",
+      "datatype": "INT",
+      "cinst": "ONLY"
+    },
+    "comment": {
+      "label": "comment"
+    },
+    "up" : {
+      "label": "up",
+      "datatype": "INT"    
+    },
+    "down" : {
+      "label": "down",
+      "datatype": "INT"    
+    },
+    "reid" : {
+      "label" : "reference id",
+      "readonly" : true,
+      "datatype" : "INT"
+    }
+  }
+}

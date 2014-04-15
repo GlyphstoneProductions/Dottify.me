@@ -18,6 +18,26 @@ Stats.getIdentityTags = function( ) {
 	return apiPromise;
 }
 
+Stats.getBlogPost = function( ) {
+	var geturl = 'http://blog.mirrim3d.com/node/7.json' ;
+	var apiPromise = $.Deferred();
+	$.ajax({
+		method: 'GET',
+		dataType: 'json',
+		url: geturl,
+		beforeSend : function(xhr) {
+	          xhr.setRequestHeader("Authorization", "Basic cmVzdHdzX2FjY2VzczpSM21vdDM=" );
+		}
+	}).done(function(data){
+		console.log( "blog returned") ;
+		apiPromise.resolve( data );
+	}).fail(function() {
+		console.log("Error getting blog");
+		apiPromise.reject()
+	});
+	return apiPromise;
+}
+
 Stats.getHeatmapData = function( countrycode ) {
 	var geturl = 'api/stats/usersperzip' ;
 	if( countrycode != null ) {

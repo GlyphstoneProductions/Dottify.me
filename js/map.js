@@ -119,6 +119,7 @@ Map.prototype.addUser = function(user) {
 	
 	var theMap = this ;
 	if( user.isMe ) {
+		console.log( 'User is me!: ' + user.data.uuid ) ;
 		this.me = user ;
 		if (user.hasCoordinate()) {
 			var userMarker = this.markers[user.data.uuid] ;
@@ -186,7 +187,7 @@ Map.prototype.addUser = function(user) {
 		    this.heatmapLayer.pushData( user.coordinate().lat, user.coordinate().lng, 20);
 		    
 		    // if this user was referred by me, add it to the refs layer with their personal pin.
-		    if( user.data.refuser == this.me.data.id) {
+		    if( this.me != null && user.data.refuser == this.me.data.id) {
 		    	this.createRefUserPin( user, this.myRefLayer ) ;
 		    }
 		}

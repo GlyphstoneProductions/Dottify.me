@@ -18,6 +18,9 @@ Dottifyme.prototype.initialize = function(first) {
 	this.userForm = new UserInfoForm( this ) ;
 	this.loginForm = new LoginForm( this ) ;
 	this.initWordCloud();
+
+	//this.getBlogPost();
+	console.log("end of initialization") ;
 }
 
 Dottifyme.prototype.onSessionLoad = function( event, data, app ) {
@@ -130,10 +133,16 @@ Dottifyme.prototype.initWordCloud = function() {
 		
 	});
 	
-
-	
 }
 
+/*
+Dottifyme.prototype.getBlogPost = function() {
+	
+	Stats.getBlogPost().done( function( data){
+		console.log( JSON.stringify(data));
+	} );
+}
+*/
 
 Dottifyme.alert = function(text) {
 	// We're wrapping `alert` so if we want to use a modal

@@ -1,0 +1,95 @@
+{
+  "columns": {
+    "id": {
+      "label": "id",
+      "datatype": "INT",
+      "key": "1",
+      "update": false 
+    },
+    "ver": {
+      "label": "ver",
+      "datatype": "INT",
+      "key": "1",
+      "update" : false
+    },
+    "thisver": {
+      "label": "thisver",
+      "datatype": "INT",
+      "key": "1",
+      "cinst" : "ONLY" 
+    },
+    "created": {
+      "label": "created",
+      "datatype": "DATETIME",
+      "cinst" : "ONLY"
+    },
+    "modified": {
+      "label": "modified",
+      "datatype": "DATETIME",
+      "update": true
+    },
+    "classid": {
+      "label" : "classid",
+      "datatype": "INT",
+      "cinst" : "ONLY"
+    },
+    "classname": {
+      "label" : "classname",
+      "readonly" : true
+    },
+    "status" : {
+      "label": "status",
+      "datatype": "INT",
+      "cinst": "ONLY"
+    },
+    "statusname" : {
+      "label" : "status name",
+      "readonly" : true
+    },
+    "incidenttype": {
+      "label": "incident type",
+      "datatype": "INT"
+    },
+    "countrycode": {
+      "label": "country code"
+    },
+    "statecode": {
+      "label": "state code"
+    },
+    "locationstr": {
+      "label": "incident location"
+    },
+    "latitude": {
+      "label": "latitude"
+    },
+    "longitude": {
+      "label": "longitude"
+    },
+    "userip": {
+      "label": "userip"
+    },
+    "reportedby": {
+      "label": "reported by",
+      "datatype": "INT"  
+    },   
+    "title" : {
+      "label": "title"
+    },
+    "sourcestr": {
+      "label": "source"
+    },
+    "notes": {
+      "label": "notes"
+    },
+    "offender": {
+      "label": "offender"
+    },
+    "victim": {
+      "label": "victim"
+    },
+    "duplicateof" : {
+      "label": "duplicate of",
+      "datatype": "INT"    
+    }
+  }
+}

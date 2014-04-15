@@ -1,0 +1,105 @@
+{
+  "columns": {
+    "id": {
+      "label": "id",
+      "datatype": "INT",
+      "key": "1",
+      "update": false 
+    },
+    "ver": {
+      "label": "ver",
+      "datatype": "INT",
+      "key": "1",
+      "update" : false
+    },
+    "thisver": {
+      "label": "thisver",
+      "datatype": "INT",
+      "key": "1",
+      "cinst" : "ONLY" 
+    },
+    "classid": {
+      "label" : "classid",
+      "datatype": "INT",
+      "cinst" : "ONLY"
+    },
+    "classname": {
+      "label" : "classname",
+      "readonly" : true
+    },
+    "status" : {
+      "label": "status",
+      "datatype": "INT",
+      "cinst": "ONLY"
+    },
+    "statusname" : {
+      "label" : "statusname",
+      "readonly" : true
+    },
+    "uuid": {
+      "label": "uuid",
+      "update" : false
+    },
+    "refid": {
+      "label": "refid",
+      "update" : false
+    },
+    "username": {
+      "label": "username"
+    },
+    "created": {
+      "label": "created",
+      "datatype": "DATETIME",
+      "cinst" : "ONLY"
+    },
+    "modified": {
+      "label": "modified",
+      "datatype": "DATETIME",
+      "update": true
+    },
+    "refuser": {
+      "label": "refuser",
+      "datatype": "INT"
+    },
+    "refuserid": {
+      "label": "refuserid"
+    },
+    "password": {
+      "label": "password"
+    },
+    "email": {
+      "label": "email"
+    },
+    "zipcode": {
+      "label": "zipcode"
+    },
+    "countrycode": {
+      "label": "countrycode"
+    },
+    "usertype": {
+      "label": "usertype",
+      "datatype": "INT"
+    },
+    "userstatus": {
+      "label": "userstatus",
+      "datatype": "INT"
+    },
+    "mecon": {
+      "label": "mecon"
+    },
+    "userip": {
+      "label": "userip"
+    },
+    "userclass": {
+      "label": "userclass",
+      "datatype": "INT"
+    },
+    "staylogged": {
+      "label": "staylogged",
+      "datatype": "INT"
+    },
+    "notes": {
+      "label": "notes"
+    }
+  }
+}

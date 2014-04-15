@@ -10,7 +10,7 @@ UserSessionInfo.prototype.setData = function( data ) {
 }
 
 UserSessionInfo.prototype.load = function( uuid, refid, users, reload) {
-	console.log( 'loading user info: ' + uuid) ;
+	console.log( 'loading user session info: ' + uuid) ;
 	this.users = users ;
 	if( uuid == null ) {
 		console.log( 'empty uuid' ) ;
